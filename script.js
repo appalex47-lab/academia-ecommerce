@@ -1,0 +1,2250 @@
+// Estructura de datos del curso y requerimientos por lección
+const lessons = [
+   { id: 'l1', title: 'Lección 1: Meta Omnicanal', exercises: ['l1-e1', 'l1-e2'] },
+   { id: 'l2', title: 'Lección 2: ¿Vamos al ritmo correcto?', exercises: ['l2-e1', 'l2-e2'] },
+   { id: 'l3', title: 'Lección 3: Descomponiendo las ventas', exercises: ['l3-e1'] },
+   { id: 'l4', title: 'Lección 4: ¿Qué tráfico aporta?', exercises: ['l4-e1'] },
+   { id: 'l5', title: 'Lección 5: Causas de caída', exercises: ['l5-e1'] },
+   { id: 'l6', title: 'Lección 6: Funnel', exercises: ['l6-e1'] },
+   { id: 'l7', title: 'Lección 7: Clientes', exercises: ['l7-e1'] },
+   { id: 'l8', title: 'Lección 8: Proyecto Integrador', exercises: ['l8-e1'] },
+   { id: 'cierre', title: 'Cierre: Mapa Final', exercises: [] }
+];
+
+
+// ================================================================
+// FASE 12 — EVALUACIÓN FINAL INTEGRAL
+// Orquestación de evidencia existente. No crea un segundo motor de ejercicios.
+// ================================================================
+const FINAL_ASSESSMENT = Object.freeze({
+    id: 'final-analyst-assessment',
+    title: 'Evaluación final integral del Analista',
+    criteria: [
+        { id:'understand', label:'Comprender', description:'Interpreta correctamente el problema y sus datos base.', source:{kind:'exercise', id:'l1-e1'}, check:()=>getLearningState('l1-e1').completed },
+        { id:'calculate', label:'Calcular', description:'Obtiene correctamente las métricas y variaciones solicitadas.', source:{kind:'exercise', id:'l2-e1'}, check:()=>getLearningState('l2-e1').completed },
+        { id:'interpret', label:'Interpretar', description:'Convierte resultados numéricos en una lectura analítica.', source:{kind:'exercise', id:'l3-e1'}, check:()=>getLearningState('l3-e1').completed },
+        { id:'diagnose', label:'Diagnosticar', description:'Identifica driver y segmento separando evidencia de causa.', source:{kind:'exercise', id:'l5-e1'}, check:()=>rubricCriteriaMet('l5-e1',['change','evidence','driver','segment']) },
+        { id:'hypothesize', label:'Hipotetizar', description:'Formula una hipótesis verificable y define evidencia para contrastarla.', source:{kind:'exercise', id:'l5-e1'}, check:()=>rubricCriteriaMet('l5-e1',['fact_hypothesis','hypothesis','measurement']) },
+        { id:'recommend', label:'Recomendar', description:'Conecta una recomendación con el hallazgo y una medición concreta.', source:{kind:'exercise', id:'l8-e1'}, check:()=>rubricCriteriaMet('l8-e1',['recommendation','measurement']) },
+        { id:'integral_case', label:'Caso integral', description:'Resuelve una situación analítica de principio a fin.', source:{kind:'case', id:'case-open-analysis-plan'}, check:()=>getCaseState('case-open-analysis-plan').completed }
+    ],
+    rubric: [
+        ['understand','Interpreta correctamente el problema y la información disponible.'],
+        ['calculate','Obtiene el resultado correcto en los cálculos requeridos.'],
+        ['interpret','Explica qué significan los resultados para el negocio.'],
+        ['diagnose','Identifica un driver y el segmento donde se concentra la señal.'],
+        ['hypothesize','Formula una causa posible que pueda comprobarse con evidencia.'],
+        ['recommend','Propone una acción analítica coherente y cómo medirla.'],
+        ['integral_case','Integra contexto, datos, hallazgo, diagnóstico, hipótesis, recomendación y medición en un caso.']
+    ]
+});
+function createFinalAssessmentState(){return {attempts:[],activeAttempt:null,lastResult:null,completed:false,passed:false,needsReviewCriteria:[],lastActivityAt:null};}
+let finalAssessmentState=createFinalAssessmentState();
+function rubricCriteriaMet(exerciseId, ids){const values=getLearningState(exerciseId).qualitativeCriteria||{};return ids.every(id=>values[id]===true);}
+function getFinalAssessmentCriteria(){return FINAL_ASSESSMENT.criteria.map(c=>({...c,met:Boolean(c.check())}));}
+function evaluateFinalAssessment(){const criteria=getFinalAssessmentCriteria();const passed=criteria.every(c=>c.met);return {criteria,passed,metCount:criteria.filter(c=>c.met).length,total:criteria.length};}
+function startFinalAssessment(){
+    if(!finalAssessmentState.activeAttempt){finalAssessmentState.activeAttempt={id:`fa-${Date.now()}`,startedAt:new Date().toISOString()};navigationState.activeView='assessment';navigationState.activeActivityId=FINAL_ASSESSMENT.id;saveLearningState();}
+    renderFinalAssessment();
+}
+function completeFinalAssessment(){
+    const evaluation=evaluateFinalAssessment();
+    const now=new Date().toISOString();
+    const failed=evaluation.criteria.filter(c=>!c.met).map(c=>c.id);
+    const attempt={id:finalAssessmentState.activeAttempt?.id||`fa-${Date.now()}`,startedAt:finalAssessmentState.activeAttempt?.startedAt||now,completedAt:now,passed:evaluation.passed,criteria:Object.fromEntries(evaluation.criteria.map(c=>[c.id,c.met])),failedCriteria:failed};
+    finalAssessmentState.attempts=[...(finalAssessmentState.attempts||[]),attempt].slice(-20);
+    finalAssessmentState.lastResult={...attempt,metCount:evaluation.metCount,total:evaluation.total};
+    finalAssessmentState.completed=true;finalAssessmentState.passed=evaluation.passed;finalAssessmentState.needsReviewCriteria=failed;finalAssessmentState.activeAttempt=null;finalAssessmentState.lastActivityAt=now;
+    navigationState.activeView='assessment';navigationState.activeActivityId=FINAL_ASSESSMENT.id;
+    saveLearningState();renderFinalAssessment();renderDashboard();
+}
+function openFinalAssessment(){
+    const root=document.getElementById('final-assessment-panel');if(!root)return;
+    const isHidden=root.classList.toggle('hidden');
+    [document.getElementById('case-lab'),document.getElementById('review-panel'),document.getElementById('dashboard-panel')].forEach(el=>{if(el&&!isHidden)el.classList.add('hidden');});
+    document.querySelectorAll('.lesson').forEach(el=>el.classList.toggle('active',isHidden?el.id===lessons[currentIndex].id:false));
+    const btn=document.getElementById('assessment-btn');if(btn){btn.setAttribute('aria-expanded',String(!isHidden));btn.textContent=isHidden?'Evaluación final':'Volver al curso';}
+    if(!isHidden){navigationState.activeView='assessment';navigationState.activeActivityId=FINAL_ASSESSMENT.id;saveLearningState();renderFinalAssessment();mainContainer.scrollTop=0;setTimeout(()=>root.querySelector('h2,button')?.focus(),0);}else{navigationState.activeView='course';navigationState.activeActivityId=null;saveLearningState();}
+}
+function closeFinalAssessment(){const root=document.getElementById('final-assessment-panel');if(root)root.classList.add('hidden');navigationState.activeView='course';navigationState.activeActivityId=null;saveLearningState();document.querySelectorAll('.lesson').forEach(el=>el.classList.toggle('active',el.id===lessons[currentIndex].id));const btn=document.getElementById('assessment-btn');if(btn){btn.setAttribute('aria-expanded','false');btn.textContent='Evaluación final';}}
+function openFinalSource(source){
+    if(source.kind==='case'){closeFinalAssessment();openCaseLab();setTimeout(()=>document.querySelector(`[data-case-id="${source.id}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),0);return;}
+    const idx=lessons.findIndex(l=>l.exercises.includes(source.id));if(idx<0)return;currentIndex=idx;closeFinalAssessment();updateUI();setTimeout(()=>document.getElementById(source.id)?.scrollIntoView({behavior:'smooth',block:'center'}),0);
+}
+function renderFinalAssessment(){
+    const root=document.getElementById('final-assessment-panel');if(!root)return;
+    const ev=evaluateFinalAssessment();const result=finalAssessmentState.lastResult;
+    const status=result?(result.passed?'Superada según los criterios definidos':'Requiere refuerzo antes de volver a intentarlo'):'Pendiente';
+    const criteriaHtml=ev.criteria.map(c=>`<article class="assessment-criterion ${c.met?'is-met':'is-pending'}"><div><strong>${c.label}</strong><p>${c.description}</p></div><span>${c.met?'✓ Evidencia disponible':'○ Pendiente'}</span><button type="button" class="action-btn outline" data-assessment-source="${c.source.id}" data-assessment-kind="${c.source.kind}">Ir a evidencia</button></article>`).join('');
+    const history=(finalAssessmentState.attempts||[]).map((a,i)=>`<li>Intento ${i+1}: ${a.passed?'criterios completos':'requiere refuerzo'} · ${a.completedAt?new Date(a.completedAt).toLocaleString('es-MX'):''}</li>`).join('')||'<li>Aún no hay intentos completos.</li>';
+    const resultHtml=result?`<section class="assessment-result ${result.passed?'assessment-pass':'assessment-retry'}"><h3>${result.passed?'Evaluación completada':'Antes de reintentar'}</h3><p>${result.passed?'La evidencia disponible cubre las siete competencias definidas. Esto describe el criterio medido; no es un score global de dominio.':'Estas son las competencias que conviene reforzar antes de volver a intentarlo.'}</p><ul>${result.failedCriteria.length?result.failedCriteria.map(id=>`<li>${FINAL_ASSESSMENT.criteria.find(c=>c.id===id)?.label||id}</li>`).join(''):'<li>No quedan competencias pendientes.</li>'}</ul>${result.passed?'':`<button type="button" class="action-btn outline" id="assessment-review">Abrir repaso</button>`}</section>`:'';
+    root.innerHTML=`<div class="assessment-head"><div><h2>EVALUACIÓN FINAL INTEGRAL</h2><p>Comprueba si puedes pasar de recibir información a analizarla, encontrar un hallazgo, diagnosticarlo, formular una hipótesis, recomendar una acción y definir cómo medirla.</p></div><button type="button" class="action-btn outline" id="assessment-close">Cerrar</button></div>
+      <section class="assessment-intro"><strong>Cómo funciona</strong><p>La evaluación reutiliza evidencia de ejercicios, rúbricas y el caso integral existentes. No crea un segundo motor de evaluación ni añade una nota arbitraria.</p><p><strong>Estado:</strong> ${status}</p></section>
+      <section class="assessment-rubric"><h3>Rúbrica</h3><ul>${FINAL_ASSESSMENT.rubric.map(([id,text])=>`<li><strong>${FINAL_ASSESSMENT.criteria.find(c=>c.id===id)?.label||id}:</strong> ${text}</li>`).join('')}</ul></section>
+      <section class="assessment-criteria"><h3>Evidencia requerida</h3>${criteriaHtml}</section>
+      ${resultHtml}
+      <section class="assessment-actions"><button type="button" class="action-btn" id="assessment-start">${result&&!result.passed?'Reintentar evaluación':'Iniciar evaluación'}</button>${result&&!result.passed?'<p class="assessment-note">La evidencia anterior se conserva. El nuevo intento se registrará por separado.</p>':''}</section>
+      <section class="assessment-history"><h3>Historial</h3><ul>${history}</ul></section>`;
+    root.querySelector('#assessment-close')?.addEventListener('click',closeFinalAssessment);
+    root.querySelector('#assessment-start')?.addEventListener('click',startFinalAssessment);
+    root.querySelector('#assessment-review')?.addEventListener('click',openReviewPanel);
+    root.querySelectorAll('[data-assessment-source]').forEach(btn=>btn.addEventListener('click',()=>openFinalSource({kind:btn.dataset.assessmentKind,id:btn.dataset.assessmentSource})));
+    if(finalAssessmentState.activeAttempt){
+        const activeStart=root.querySelector('#assessment-start');
+        if(activeStart){ activeStart.textContent='Registrar resultado actual'; activeStart.addEventListener('click',completeFinalAssessment); }
+    }
+}
+function sanitizeFinalAssessmentState(raw){const base=createFinalAssessmentState();if(!raw||typeof raw!=='object')return base;return {attempts:Array.isArray(raw.attempts)?raw.attempts.slice(-20):[],activeAttempt:raw.activeAttempt&&typeof raw.activeAttempt==='object'?{id:String(raw.activeAttempt.id||''),startedAt:typeof raw.activeAttempt.startedAt==='string'?raw.activeAttempt.startedAt:null}:null,lastResult:raw.lastResult&&typeof raw.lastResult==='object'?raw.lastResult:null,completed:raw.completed===true,passed:raw.passed===true,needsReviewCriteria:Array.isArray(raw.needsReviewCriteria)?[...new Set(raw.needsReviewCriteria.filter(id=>FINAL_ASSESSMENT.criteria.some(c=>c.id===id)))]:[],lastActivityAt:typeof raw.lastActivityAt==='string'?raw.lastActivityAt:null};}
+
+
+// ================================================================
+// FASE 7 — LABORATORIO DE CASOS ANALÍTICOS
+// Casos integrados que reutilizan persistencia, evidencia y criterios
+// existentes; no son ejercicios independientes ni crean un motor paralelo.
+// ================================================================
+const ANALYTICAL_CASES = Object.freeze([
+    {
+        id: 'case-guided-sales-drop',
+        level: 1,
+        title: 'Caso 1 — Caída semanal de ventas',
+        mode: 'guided',
+        concepts: ['sales','traffic','conversion_rate','aov','diagnosis','hypothesis','evidence'],
+        context: 'El ecommerce registró una caída de ventas durante la última semana y la dirección pide identificar qué cambió antes de decidir una acción.',
+        data: [
+            ['Periodo', 'Ventas', 'Sesiones', 'CR', 'AOV'],
+            ['Referencia', '$10,000,000', '400,000', '2.50%', '$10,000'],
+            ['Actual', '$8,400,000', '400,000', '2.10%', '$10,000']
+        ],
+        prompt: 'Determina qué cambió, cuánto cambió y qué driver explica matemáticamente la caída.',
+        components: [
+            { id:'change', label:'Identificación del cambio', type:'select', options:['Ventas cayeron; sesiones se mantuvieron; CR cayó; AOV se mantuvo.','Ventas subieron; sesiones cayeron; CR subió.','AOV cayó y explica todo el cambio.'], answer:0, stage:'observe' },
+            { id:'quantify', label:'Cuantificación', type:'select', options:['Ventas -16%; CR -0.4 puntos porcentuales.','Ventas -4%; CR -16 puntos porcentuales.','Ventas -16 puntos porcentuales; CR -0.4%.'], answer:0, stage:'quantify' },
+            { id:'driver', label:'Driver principal', type:'select', options:['La caída de CR, porque tráfico y AOV permanecen constantes.','El tráfico, porque aumentó.','El AOV, porque disminuyó.'], answer:0, stage:'diagnose' },
+            { id:'hypothesis', label:'Hipótesis verificable', type:'text', stage:'hypothesize', keywords:['cr','checkout','mobile'], minKeywords:1 },
+            { id:'recommendation', label:'Siguiente análisis', type:'select', options:['Segmentar CR por dispositivo y etapa del funnel.','Aumentar presupuesto sin investigar la causa.','Cambiar el AOV objetivo.'], answer:0, stage:'recommend' },
+            { id:'measurement', label:'Medición', type:'text', stage:'measure', keywords:['cr','mobile','checkout'], minKeywords:1 }
+        ],
+        hints: [
+            'Empieza comparando ventas, sesiones, CR y AOV contra el periodo de referencia.',
+            'Si sesiones y AOV permanecen constantes, identifica qué variable de la fórmula de ventas cambió.',
+            'Una hipótesis debe incluir una explicación posible y la evidencia que permitiría comprobarla.'
+        ]
+    },
+    {
+        id: 'case-partial-mobile-checkout',
+        level: 2,
+        title: 'Caso 2 — La caída está concentrada',
+        mode: 'partial',
+        concepts: ['traffic','conversion_rate','funnel','checkout','diagnosis','hypothesis','evidence'],
+        context: 'Las ventas bajaron y el equipo ya detectó que la señal de conversión no es uniforme. Tu trabajo es localizar el segmento y convertir el hallazgo en una hipótesis.',
+        data: [
+            ['Segmento', 'Sesiones', 'CR', 'Pedidos'],
+            ['Desktop', '200,000', '2.8%', '5,600'],
+            ['Mobile', '300,000', '1.8%', '5,400'],
+            ['Mobile — semana anterior', '300,000', '2.2%', '6,600']
+        ],
+        prompt: 'Localiza dónde ocurre el cambio, separa hecho de hipótesis y define qué evidencia adicional necesitas.',
+        components: [
+            { id:'change', label:'Hallazgo', type:'select', options:['Mobile CR cayó 0.4 puntos porcentuales con el mismo volumen de sesiones.','Desktop perdió todo el volumen.','El AOV explica la diferencia.'], answer:0, stage:'observe' },
+            { id:'comparison', label:'Comparación', type:'select', options:['Comparar mobile actual contra mobile anterior y luego contra desktop.','Comparar solo ventas totales.','Comparar mobile actual contra una meta anual.'], answer:0, stage:'compare' },
+            { id:'driver', label:'Diagnóstico', type:'select', options:['La señal está concentrada en la conversión mobile; aún no demuestra la causa.','El checkout es definitivamente la causa.','Desktop es el principal problema.'], answer:0, stage:'diagnose' },
+            { id:'hypothesis', label:'Hipótesis', type:'text', stage:'hypothesize', keywords:['mobile','checkout'], minKeywords:1 },
+            { id:'evidence', label:'Evidencia necesaria', type:'select', options:['Abandono por etapa del checkout mobile y errores de pago por dispositivo/navegador.','Solo revisar ventas totales.','Cambiar precios inmediatamente.'], answer:0, stage:'measure' },
+            { id:'recommendation', label:'Recomendación', type:'text', stage:'recommend', keywords:['checkout','mobile'], minKeywords:1 }
+        ],
+        hints: [
+            'Primero localiza la señal: compara el mismo segmento contra su referencia.',
+            'Que mobile tenga una caída no demuestra que checkout sea la causa.',
+            'Busca una evidencia que pueda confirmar o debilitar la hipótesis.'
+        ]
+    },
+    {
+        id: 'case-open-analysis-plan',
+        level: 3,
+        title: 'Caso 3 — Investigación abierta',
+        mode: 'open',
+        concepts: ['sales','traffic','conversion_rate','aov','funnel','checkout','diagnosis','hypothesis','evidence'],
+        context: 'La dirección solo informa: «Las ventas están abajo. Averigua qué está pasando». No existe un único camino analítico correcto.',
+        data: [
+            ['Fuente disponible', 'Dimensiones'],
+            ['Ventas', 'Fecha, Canal, Pedido, Venta'],
+            ['Ecommerce', 'Sesiones, Fuente, Dispositivo, Navegador, Pedido'],
+            ['Funnel', 'View Item, Add Cart, Checkout, Purchase'],
+            ['Cliente', 'Customer ID, Primera compra, Órdenes, Venta'],
+            ['Producto', 'Categoría, SKU, Views, Add Cart, Orders, Revenue'],
+            ['Tecnología', 'Browser, Device, Error, Tiempo de carga']
+        ],
+        prompt: 'Construye un plan de análisis que empiece por definir la comparación y termine en una recomendación y una medición verificable.',
+        components: [
+            { id:'objective', label:'Objetivo y referencia', type:'select', options:['Definir qué resultado cayó y contra qué periodo comparable se evaluará.','Empezar buscando una causa específica.','Elegir primero una herramienta.'], answer:0, stage:'observe' },
+            { id:'data', label:'Datos iniciales', type:'select', options:['Ventas, tráfico, CR, AOV y dimensiones para segmentar.','Solo ventas totales.','Solo errores técnicos.'], answer:0, stage:'quantify' },
+            { id:'segmentation', label:'Segmentación inicial', type:'multi', options:['Canal','Dispositivo','Funnel','Producto','Cliente','Fuente'], minSelections:2, stage:'segment' },
+            { id:'diagnosis', label:'Diagnóstico', type:'text', stage:'diagnose', keywords:['driver','segment'], minKeywords:1 },
+            { id:'hypothesis', label:'Hipótesis verificable', type:'text', stage:'hypothesize', keywords:['hipótesis','evidencia'], minKeywords:1 },
+            { id:'recommendation', label:'Recomendación', type:'text', stage:'recommend', keywords:['investigar','analizar'], minKeywords:1 },
+            { id:'measurement', label:'Medición', type:'text', stage:'measure', keywords:['kpi','periodo'], minKeywords:1 }
+        ],
+        hints: [
+            'No empieces con una causa. Define primero el resultado y la referencia comparable.',
+            'Después cuantifica la brecha y descompón sus posibles drivers.',
+            'Una recomendación útil debe decir qué analizar y cómo medir si el hallazgo cambia.'
+        ]
+    }
+]);
+
+function createCaseLearningState() {
+    return { attempts: 0, attemptResults: [], hintsUsed: 0, revealedHints: [], completed: false, componentResults: {}, evidenceStages: [], errorHistory: [], lastActivityAt: null };
+}
+function getCase(caseId) { return ANALYTICAL_CASES.find(item => item.id === caseId) || null; }
+function sanitizeCaseState(raw) {
+    const base = createCaseLearningState();
+    if (!raw || typeof raw !== 'object') return base;
+    return {
+        attempts: Number.isInteger(raw.attempts) && raw.attempts >= 0 ? raw.attempts : 0,
+        attemptResults: Array.isArray(raw.attemptResults) ? raw.attemptResults.slice(-50) : [],
+        hintsUsed: Number.isInteger(raw.hintsUsed) && raw.hintsUsed >= 0 ? raw.hintsUsed : 0,
+        revealedHints: Array.isArray(raw.revealedHints) ? [...new Set(raw.revealedHints.filter(Number.isInteger).filter(i => i >= 0))].sort((a,b)=>a-b) : [],
+        completed: raw.completed === true,
+        componentResults: raw.componentResults && typeof raw.componentResults === 'object' ? {...raw.componentResults} : {},
+        evidenceStages: Array.isArray(raw.evidenceStages) ? [...new Set(raw.evidenceStages.filter(stage => ANALYTICAL_CHAIN.includes(stage)))] : [],
+        errorHistory: Array.isArray(raw.errorHistory) ? raw.errorHistory.slice(-50) : [],
+        lastActivityAt: typeof raw.lastActivityAt === 'string' ? raw.lastActivityAt : null,
+        reviewCount: Number.isInteger(raw.reviewCount) && raw.reviewCount >= 0 ? raw.reviewCount : 0,
+        lastReviewAt: typeof raw.lastReviewAt === 'string' ? raw.lastReviewAt : null
+    };
+}
+let caseLearningState = {};
+function createInitialCaseState() { const state={}; ANALYTICAL_CASES.forEach(c=>state[c.id]=createCaseLearningState()); return state; }
+function getCaseState(caseId) { if (!caseLearningState[caseId]) caseLearningState[caseId]=createCaseLearningState(); return caseLearningState[caseId]; }
+function evaluateCaseComponent(component, value) {
+    if (component.type === 'select') return Number(value) === component.answer;
+    if (component.type === 'multi') return Array.isArray(value) && value.length >= (component.minSelections || 1);
+    if (component.type === 'text') {
+        const text = String(value || '').trim().toLowerCase();
+        if (!text) return false;
+        const hits = (component.keywords || []).filter(k => text.includes(k.toLowerCase()));
+        return hits.length >= (component.minKeywords || 1);
+    }
+    return false;
+}
+function recordCaseAttempt(caseId, results) {
+    const state=getCaseState(caseId), c=getCase(caseId); if (!c) return state;
+    state.attempts += 1;
+    const correctCount=Object.values(results).filter(Boolean).length;
+    const result={attempt:state.attempts, results:{...results}, correctCount, total:c.components.length, timestamp:new Date().toISOString()};
+    state.attemptResults.push(result); state.attemptResults=state.attemptResults.slice(-50);
+    const failedComponents = c.components.filter(comp => results[comp.id] !== true).map(comp => comp.id);
+    if (failedComponents.length) state.errorHistory.push({ attempt: state.attempts, components: failedComponents, timestamp: result.timestamp });
+    state.errorHistory = state.errorHistory.slice(-50);
+    Object.entries(results).forEach(([id, value]) => { state.componentResults[id] = state.componentResults[id] === true || value === true; });
+    c.components.forEach(comp=>{ if(results[comp.id]) state.evidenceStages=[...new Set([...state.evidenceStages, comp.stage])]; });
+    state.completed=Object.values(state.componentResults).filter(Boolean).length===c.components.length;
+    state.lastActivityAt=result.timestamp;
+    syncConceptEvidence();
+    saveLearningState();
+    return state;
+}
+function revealCaseHint(caseId) { const c=getCase(caseId), s=getCaseState(caseId); if(!c || s.completed || s.revealedHints.length>=c.hints.length)return; const idx=s.revealedHints.length; s.revealedHints.push(idx); s.hintsUsed+=1; saveLearningState(); renderCaseLab(); }
+function caseEvidence(caseId) { const s=getCaseState(caseId), c=getCase(caseId); return { caseId, level:c?.level || null, attempts:s.attempts, hintsUsed:s.hintsUsed, completed:s.completed, components:s.componentResults, stages:s.evidenceStages, reviewCount:s.reviewCount||0, lastReviewAt:s.lastReviewAt||null }; }
+function renderCaseLab() {
+    const root=document.getElementById('case-lab'); if(!root)return;
+    root.innerHTML=`<div class="case-lab-head"><div><h2>LABORATORIO DE CASOS ANALÍTICOS</h2><p>Resuelve situaciones completas: contexto → datos → pregunta → análisis → hallazgo → diagnóstico → hipótesis → recomendación → medición.</p></div><span class="case-lab-note">No es una calificación global.</span></div>`;
+    ANALYTICAL_CASES.forEach(c=>{
+        const s=getCaseState(c.id); const card=document.createElement('article'); card.className='case-card'; card.dataset.caseId=c.id;
+        const componentRows=c.components.map((comp,i)=>{
+            let input='';
+            if(comp.type==='select') input=`<select data-case-input="${comp.id}"><option value="">Selecciona…</option>${comp.options.map((o,j)=>`<option value="${j}">${o}</option>`).join('')}</select>`;
+            else if(comp.type==='multi') input=comp.options.map((o,j)=>`<label class="case-check"><input type="checkbox" data-case-input="${comp.id}" value="${j}">${o}</label>`).join('');
+            else input=`<textarea data-case-input="${comp.id}" rows="2" placeholder="Escribe una respuesta verificable…"></textarea>`;
+            return `<div class="case-component"><label><strong>${i+1}. ${comp.label}</strong></label>${input}<span class="case-component-state">${s.componentResults[comp.id]===true?'✓ Evidencia registrada':'Pendiente'}</span></div>`;
+        }).join('');
+        const hints=c.hints.filter((_,i)=>s.revealedHints.includes(i)).map((h,i)=>`<p><strong>💡 Pista ${i+1}:</strong> ${h}</p>`).join('');
+        card.innerHTML=`<div class="case-level">Nivel ${c.level} · ${c.mode==='guided'?'Guiado':c.mode==='partial'?'Parcialmente guiado':'Abierto'}</div><h3>${c.title}</h3><p>${c.context}</p><h4>Datos</h4><div class="case-data"><table>${c.data.map((row,r)=>`<tr>${row.map((cell,j)=>r===0?`<th>${cell}</th>`:`<td>${cell}</td>`).join('')}</tr>`).join('')}</table></div><h4>Pregunta de negocio</h4><p>${c.prompt}</p><form class="case-form" data-case-form="${c.id}">${componentRows}<button class="action-btn" type="submit">Registrar análisis</button></form><div class="case-feedback" aria-live="polite"></div>${hints?`<div class="hints-box">${hints}</div>`:''}<div class="case-actions">${!s.completed && s.revealedHints.length<c.hints.length?`<button class="action-btn outline" type="button" data-case-hint="${c.id}">💡 Ver pista ${s.revealedHints.length+1}</button>`:''}</div><div class="case-evidence"><strong>Evidencia del caso</strong><span>${s.attempts} intento(s) · ${s.hintsUsed} pista(s) · ${s.completed?'caso completado':'en progreso'}</span><div>${ANALYTICAL_CHAIN.map(stage=>`<span class="case-stage ${s.evidenceStages.includes(stage)?'done':''}">${s.evidenceStages.includes(stage)?'✓ ':''}${ANALYTICAL_STAGE_LABELS[stage]}</span>`).join('')}</div></div>`;
+        root.appendChild(card);
+    });
+    if (typeof root.querySelectorAll !== 'function') return;
+    root.querySelectorAll('[data-case-form]').forEach(form=>form.addEventListener('submit',e=>{e.preventDefault(); submitCase(form.dataset.caseForm,form);}));
+    root.querySelectorAll('[data-case-hint]').forEach(btn=>btn.addEventListener('click',()=>revealCaseHint(btn.dataset.caseHint)));
+}
+function submitCase(caseId, form) {
+    const c=getCase(caseId); if(!c)return; const values={};
+    c.components.forEach(comp=>{ const nodes=[...form.querySelectorAll(`[data-case-input="${comp.id}"]`)]; values[comp.id]=comp.type==='multi'?nodes.filter(n=>n.checked).map(n=>n.value):nodes[0]?.value || ''; });
+    const results={}; c.components.forEach(comp=>results[comp.id]=evaluateCaseComponent(comp,values[comp.id]));
+    const state=recordCaseAttempt(caseId,results); const feedback=form.parentElement.querySelector('.case-feedback');
+    const correct=Object.values(results).filter(Boolean).length;
+    const pending=c.components.filter(comp=>results[comp.id]!==true).map(comp=>comp.label);
+    feedback.innerHTML=state.completed?`<div class="success-box">Caso completado. Conservaste evidencia por componente; revisa especialmente las hipótesis que marcaste como verificables.</div>`:`<div class="error-box">${correct}/${c.components.length} componentes muestran evidencia suficiente. Pendientes: ${pending.join(', ') || 'ninguno'}. Revisa los elementos pendientes y utiliza las pistas para avanzar sin recibir la respuesta completa.</div>`;
+    renderCaseLab();
+}
+function loadCaseState(saved) { caseLearningState=createInitialCaseState(); Object.keys(caseLearningState).forEach(id=>caseLearningState[id]=sanitizeCaseState(saved?.[id])); }
+
+// ================================================================
+// FASE 1 — MODELO PEDAGÓGICO
+// Extensión compatible: los IDs y el flujo actual se conservan.
+// ================================================================
+
+const COGNITIVE_LEVELS = Object.freeze({
+    UNDERSTAND: 'understand',
+    CALCULATE: 'calculate',
+    INTERPRET: 'interpret',
+    DIAGNOSE: 'diagnose',
+    HYPOTHESIZE: 'hypothesize',
+    RECOMMEND: 'recommend',
+    CASE: 'case'
+});
+
+const EXERCISE_TYPES = Object.freeze({
+    KNOWLEDGE: 'knowledge',
+    CALCULATION: 'calculation',
+    INTERPRETATION: 'interpretation',
+    DIAGNOSIS: 'diagnosis',
+    HYPOTHESIS: 'hypothesis',
+    RECOMMENDATION: 'recommendation',
+    CASE: 'case'
+});
+
+// Catálogo inicial construido únicamente con conceptos presentes en el contenido actual.
+const concepts = Object.freeze({
+    annual_goal: { id: 'annual_goal', name: 'Meta anual', description: 'Objetivo anual de ventas que se distribuye en el tiempo.', category: 'goals', relatedConcepts: ['seasonality', 'channels'] },
+    seasonality: { id: 'seasonality', name: 'Estacionalidad', description: 'Distribución histórica de la demanda a lo largo del periodo.', category: 'goals', relatedConcepts: ['annual_goal'] },
+    channels: { id: 'channels', name: 'Canales', description: 'Fuentes o canales mediante los que se genera tráfico y ventas.', category: 'acquisition', relatedConcepts: ['traffic', 'acquisition', 'rps'] },
+    pacing: { id: 'pacing', name: 'Pacing', description: 'Relación entre avance de ventas y avance del tiempo.', category: 'forecast', relatedConcepts: ['run_rate', 'target', 'forecast'] },
+    run_rate: { id: 'run_rate', name: 'Run Rate', description: 'Ritmo de ventas observado por unidad de tiempo.', category: 'forecast', relatedConcepts: ['pacing', 'forecast'] },
+    forecast: { id: 'forecast', name: 'Forecast', description: 'Proyección de cierre basada en el ritmo observado y los datos disponibles.', category: 'forecast', relatedConcepts: ['run_rate', 'target'] },
+    target: { id: 'target', name: 'Target diario', description: 'Ritmo diario necesario para alcanzar una meta restante.', category: 'forecast', relatedConcepts: ['pacing', 'forecast'] },
+    sales: { id: 'sales', name: 'Ventas', description: 'Valor de ventas utilizado para analizar desempeño y variaciones.', category: 'sales', relatedConcepts: ['orders', 'aov', 'traffic'] },
+    traffic: { id: 'traffic', name: 'Tráfico', description: 'Volumen de sesiones o visitas disponibles para generar pedidos.', category: 'acquisition', relatedConcepts: ['orders', 'conversion_rate', 'channels'] },
+    orders: { id: 'orders', name: 'Pedidos', description: 'Cantidad de órdenes generadas en un periodo.', category: 'sales', relatedConcepts: ['traffic', 'conversion_rate', 'aov'] },
+    conversion_rate: { id: 'conversion_rate', name: 'Conversion Rate', description: 'Relación entre pedidos y tráfico utilizada para evaluar conversión.', category: 'conversion', relatedConcepts: ['traffic', 'orders', 'funnel', 'checkout'] },
+    aov: { id: 'aov', name: 'AOV', description: 'Valor promedio de cada pedido.', category: 'sales', relatedConcepts: ['orders', 'sales', 'ltv'] },
+    rps: { id: 'rps', name: 'RPS', description: 'Ventas generadas por unidad de tráfico.', category: 'acquisition', relatedConcepts: ['sales', 'traffic', 'channels'] },
+    acquisition: { id: 'acquisition', name: 'Adquisición', description: 'Conjunto de fuentes y acciones que generan tráfico.', category: 'acquisition', relatedConcepts: ['channels', 'traffic'] },
+    funnel: { id: 'funnel', name: 'Funnel', description: 'Secuencia de etapas que conduce desde el tráfico hasta la compra.', category: 'conversion', relatedConcepts: ['checkout', 'purchase', 'conversion_rate'] },
+    checkout: { id: 'checkout', name: 'Checkout', description: 'Etapa del proceso de compra donde el usuario completa el pedido.', category: 'conversion', relatedConcepts: ['funnel', 'purchase'] },
+    purchase: { id: 'purchase', name: 'Purchase', description: 'Evento final de compra dentro del funnel.', category: 'conversion', relatedConcepts: ['checkout', 'orders'] },
+    retention: { id: 'retention', name: 'Retención', description: 'Persistencia de clientes o cohortes a lo largo del tiempo.', category: 'customers', relatedConcepts: ['cohorts', 'ltv'] },
+    cohorts: { id: 'cohorts', name: 'Cohortes', description: 'Agrupaciones de clientes analizadas por periodo de adquisición o comportamiento.', category: 'customers', relatedConcepts: ['retention', 'ltv'] },
+    ltv: { id: 'ltv', name: 'LTV', description: 'Valor acumulado esperado o observado de un cliente.', category: 'customers', relatedConcepts: ['retention', 'aov'] },
+    diagnosis: { id: 'diagnosis', name: 'Diagnóstico', description: 'Identificación estructurada del driver o zona donde se concentra una variación.', category: 'analysis', relatedConcepts: ['hypothesis', 'evidence'] },
+    hypothesis: { id: 'hypothesis', name: 'Hipótesis', description: 'Explicación verificable que relaciona una señal con una posible causa.', category: 'analysis', relatedConcepts: ['diagnosis', 'evidence'] },
+    evidence: { id: 'evidence', name: 'Evidencia', description: 'Dato o comprobación utilizada para confirmar o debilitar una explicación.', category: 'analysis', relatedConcepts: ['diagnosis', 'hypothesis'] }
+});
+
+const EVIDENCE_STATES = Object.freeze({
+    NOT_STARTED: 'not_started',
+    EXPOSED: 'exposed',
+    PRACTICED: 'practiced',
+    DEMONSTRATED: 'demonstrated',
+    NEEDS_REVIEW: 'needs_review'
+});
+const EVIDENCE_STATE_LABELS = Object.freeze({
+    [EVIDENCE_STATES.NOT_STARTED]: 'Sin evidencia',
+    [EVIDENCE_STATES.EXPOSED]: 'Expuesto',
+    [EVIDENCE_STATES.PRACTICED]: 'Practicado',
+    [EVIDENCE_STATES.DEMONSTRATED]: 'Demostrado',
+    [EVIDENCE_STATES.NEEDS_REVIEW]: 'Necesita revisión'
+});
+
+// Metadata pedagógica de los ejercicios existentes.
+// Las preguntas, respuestas y explicaciones siguen viviendo donde ya estaban:
+// HTML y funciones de validación. No se duplican aquí.
+const exerciseMetadata = Object.freeze({
+    'l1-e1': {
+        hints: [
+            'Calcula primero la meta mensual usando Meta anual × peso mensual.',
+            'Distribuye la meta mensual por canal usando el porcentaje de cada canal.',
+            'Comprueba que la suma de los cuatro canales coincide con la meta mensual.'
+        ],
+        type: EXERCISE_TYPES.CALCULATION,
+        cognitiveLevel: COGNITIVE_LEVELS.CALCULATE,
+        difficulty: 1,
+        concepts: ['annual_goal', 'seasonality', 'channels']
+    },
+    'l1-e2': {
+        hints: [
+            'La meta mensual se obtiene multiplicando la meta anual por el peso histórico.',
+            'Enero y noviembre utilizan sus respectivos porcentajes históricos.',
+            'Comprueba que estás aplicando 7% a enero y 12% a noviembre.'
+        ],
+        type: EXERCISE_TYPES.CALCULATION,
+        cognitiveLevel: COGNITIVE_LEVELS.CALCULATE,
+        difficulty: 1,
+        concepts: ['annual_goal', 'seasonality', 'channels']
+    },
+    'l2-e1': {
+        hints: [
+            'Compara el porcentaje de cumplimiento con el tiempo transcurrido.',
+            'Run Rate usa la venta acumulada dividida entre los días transcurridos.',
+            'Forecast y Target deben derivarse de los datos acumulados y del tiempo restante.'
+        ],
+        type: EXERCISE_TYPES.CALCULATION,
+        cognitiveLevel: COGNITIVE_LEVELS.CALCULATE,
+        difficulty: 1,
+        concepts: ['pacing', 'run_rate', 'forecast', 'target']
+    },
+    'l2-e2': {
+        hints: [
+            'El cumplimiento debe compararse contra el tiempo transcurrido.',
+            'Para el target, divide la brecha restante entre los días restantes.',
+            'Revisa la solución solo después de comprobar tus unidades y periodos.'
+        ],
+        type: EXERCISE_TYPES.CALCULATION,
+        cognitiveLevel: COGNITIVE_LEVELS.INTERPRET,
+        difficulty: 2,
+        concepts: ['pacing', 'run_rate', 'forecast', 'target']
+    },
+    'l3-e1': {
+        hints: [
+            'Descompón ventas en volumen de pedidos y valor medio.',
+            'Calcula RPS relacionando ventas con tráfico.',
+            'Compara ambos periodos antes de formular una interpretación.'
+        ],
+        type: EXERCISE_TYPES.CALCULATION,
+        cognitiveLevel: COGNITIVE_LEVELS.INTERPRET,
+        difficulty: 2,
+        concepts: ['sales', 'traffic', 'orders', 'conversion_rate', 'aov', 'rps']
+    },
+    'l4-e1': {
+        hints: [
+            'RPS relaciona ventas con sesiones/tráfico.',
+            'Calcula primero los indicadores del canal antes de compararlos.',
+            'Usa la comparación de canales para formular tus preguntas de investigación.'
+        ],
+        type: EXERCISE_TYPES.INTERPRETATION,
+        cognitiveLevel: COGNITIVE_LEVELS.INTERPRET,
+        difficulty: 2,
+        concepts: ['traffic', 'channels', 'acquisition', 'conversion_rate', 'aov', 'rps']
+    },
+    'l5-e1': {
+        hints: [
+            'Separa brecha, driver, segmento y señal antes de formular una hipótesis.',
+            'Una señal no demuestra por sí sola una causa.',
+            'Indica qué evidencia necesitarías para confirmar o debilitar la hipótesis.'
+        ],
+        type: EXERCISE_TYPES.DIAGNOSIS,
+        cognitiveLevel: COGNITIVE_LEVELS.DIAGNOSE,
+        difficulty: 2,
+        concepts: ['sales', 'traffic', 'conversion_rate', 'aov', 'diagnosis', 'hypothesis', 'evidence']
+    },
+    'l6-e1': {
+        hints: [
+            'Localiza primero la etapa del funnel con mayor deterioro.',
+            'Después segmenta la señal para identificar dónde se concentra.',
+            'Conecta la hipótesis con evidencia adicional y un KPI de seguimiento.'
+        ],
+        type: EXERCISE_TYPES.DIAGNOSIS,
+        cognitiveLevel: COGNITIVE_LEVELS.DIAGNOSE,
+        difficulty: 2,
+        concepts: ['funnel', 'checkout', 'purchase', 'conversion_rate', 'diagnosis', 'hypothesis', 'evidence']
+    },
+    'l7-e1': {
+        hints: [
+            'Frecuencia = órdenes / clientes y AOV = ventas / órdenes.',
+            'Compara las cohortes usando el mismo periodo de retención.',
+            'Una retención menor es una señal para investigar, no una causa definitiva.'
+        ],
+        type: EXERCISE_TYPES.INTERPRETATION,
+        cognitiveLevel: COGNITIVE_LEVELS.INTERPRET,
+        difficulty: 2,
+        concepts: ['retention', 'cohorts', 'ltv', 'orders', 'sales', 'aov']
+    },
+    'l8-e1': {
+        hints: [
+            'Empieza definiendo el objetivo y la brecha que quieres explicar.',
+            'Selecciona datos y fuentes que permitan validar tu diagnóstico.',
+            'Termina conectando recomendación con KPI y método de medición.'
+        ],
+        type: EXERCISE_TYPES.CASE,
+        cognitiveLevel: COGNITIVE_LEVELS.CASE,
+        difficulty: 3,
+        concepts: [
+            'sales', 'traffic', 'conversion_rate', 'aov', 'channels',
+            'funnel', 'retention', 'diagnosis', 'hypothesis', 'evidence'
+        ]
+    }
+});
+
+// ================================================================
+// FASE 6 — PENSAMIENTO ANALÍTICO
+// Capa pedagógica determinística: no interpreta lenguaje natural ni usa IA.
+// ================================================================
+const ANALYTICAL_STAGES = Object.freeze({
+    OBSERVE: 'observe', QUANTIFY: 'quantify', COMPARE: 'compare',
+    INTERPRET: 'interpret', SEGMENT: 'segment', DIAGNOSE: 'diagnose',
+    HYPOTHESIZE: 'hypothesize', RECOMMEND: 'recommend', MEASURE: 'measure'
+});
+const ANALYTICAL_STAGE_LABELS = Object.freeze({
+    observe: 'Observar', quantify: 'Cuantificar', compare: 'Comparar',
+    interpret: 'Interpretar', segment: 'Segmentar', diagnose: 'Diagnosticar',
+    hypothesize: 'Hipotetizar', recommend: 'Recomendar', measure: 'Medir'
+});
+const ANALYTICAL_CHAIN = Object.freeze([
+    'observe','quantify','compare','interpret','segment','diagnose','hypothesize','recommend','measure'
+]);
+const analyticalActivityMetadata = Object.freeze({
+    'l1-e1': { stages:['observe','quantify'], nextQuestion:'¿Qué cambia cuando comparas la meta calculada contra el periodo o canal de referencia?' },
+    'l1-e2': { stages:['observe','quantify','compare'], nextQuestion:'¿Qué referencia usarías para saber si la distribución mensual es razonable?' },
+    'l2-e1': { stages:['quantify','compare','interpret'], nextQuestion:'¿Qué significa el pacing observado frente al ritmo necesario para cerrar la meta?' },
+    'l2-e2': { stages:['quantify','compare','interpret'], nextQuestion:'¿Qué dato adicional revisarías antes de convertir el forecast en una conclusión?' },
+    'l3-e1': { stages:['observe','quantify','compare','interpret'], nextQuestion:'¿Qué componente explica principalmente el cambio y qué segmento investigarías después?' },
+    'l4-e1': { stages:['quantify','compare','interpret','segment'], nextQuestion:'¿Dónde se concentra la diferencia y qué dato necesitarías para explicar por qué?' },
+    'l5-e1': { stages:['observe','compare','segment','diagnose','hypothesize','measure'], nextQuestion:'¿Qué evidencia permitiría confirmar o debilitar la hipótesis sin presentarla como un hecho?' },
+    'l6-e1': { stages:['observe','quantify','segment','diagnose','hypothesize','recommend','measure'], nextQuestion:'¿Qué evidencia adicional y qué KPI permitirían validar la hipótesis de fricción?' },
+    'l7-e1': { stages:['quantify','compare','interpret','segment','hypothesize','measure'], nextQuestion:'¿Qué diferencia entre cohortes investigarías y qué evidencia usarías para explicarla?' },
+    'l8-e1': { stages:['observe','quantify','compare','interpret','segment','diagnose','hypothesize','recommend','measure'], nextQuestion:'¿Cómo conectarías hallazgo, hipótesis, acción y KPI para comprobar si el análisis produjo una decisión útil?' }
+});
+const ANALYTICAL_RUBRICS = Object.freeze({
+    'l5-e1': [['change','Identifiqué claramente la brecha o cambio observado.'],['evidence','Usé los datos del caso como evidencia.'],['driver','Identifiqué el driver principal.'],['segment','Localicé el segmento donde se concentra la señal.'],['fact_hypothesis','Separé el hecho observado de la hipótesis.'],['hypothesis','Formulé una hipótesis verificable.'],['measurement','Definí qué evidencia permitiría confirmarla o debilitarla.']],
+    'l6-e1': [['change','Identifiqué la brecha principal.'],['driver','Identifiqué la etapa del funnel que explica la variación.'],['segment','Localicé el segmento más afectado.'],['evidence','Usé la señal de errores de pago como evidencia adicional.'],['fact_hypothesis','Separé señal observada de causa hipotética.'],['hypothesis','Formulé una hipótesis verificable.'],['recommendation','Propuse una acción de investigación concreta.'],['measurement','Definí KPI(s) para seguir el resultado.']],
+    'l7-e1': [['calculation','Incluí los cálculos de frecuencia y AOV.'],['comparison','Comparé cohortes usando periodos equivalentes.'],['change','Identifiqué el cambio relevante de retención.'],['segment','Consideré diferencias entre cohortes.'],['fact_hypothesis','Separé el patrón observado de su posible causa.'],['hypothesis','Propuse qué investigaría para explicar la diferencia.']],
+    'l8-e1': [['objective','Definí el objetivo y la referencia de comparación.'],['data','Identifiqué los datos y fuentes necesarios.'],['validation','Definí cómo validar la calidad de los datos.'],['quantify','Incluí brecha y métricas de ritmo/proyección.'],['segment','Propuse segmentación para localizar la señal.'],['diagnosis','Separé driver, segmento y evidencia.'],['hypothesis','Formulé una hipótesis verificable.'],['recommendation','Conecté la recomendación con el hallazgo.'],['measurement','Definí KPI, segmento, periodo y resultado esperado.']]
+});
+function getAnalyticalActivity(exerciseId) { return analyticalActivityMetadata[exerciseId] || { stages:[], nextQuestion:'' }; }
+function getAnalyticalRubric(exerciseId) { return ANALYTICAL_RUBRICS[exerciseId] || []; }
+
+/**
+ * Normaliza un ejercicio legacy (string/objeto parcial) a una estructura
+ * pedagógica estándar sin obligar al motor actual a cambiar su contrato.
+ */
+function normalizeExercise(exercise) {
+    const base = typeof exercise === 'string' ? { id: exercise } : { ...(exercise || {}) };
+    const metadata = exerciseMetadata[base.id] || {};
+
+    return {
+        ...base,
+        type: base.type ?? metadata.type ?? null,
+        cognitiveLevel: base.cognitiveLevel ?? metadata.cognitiveLevel ?? null,
+        difficulty: base.difficulty ?? metadata.difficulty ?? null,
+        concepts: Array.isArray(base.concepts)
+            ? base.concepts
+            : (metadata.concepts ? [...metadata.concepts] : []),
+        hints: Array.isArray(base.hints) ? base.hints : (Array.isArray(metadata.hints) ? [...metadata.hints] : []),
+        analystThinking: Array.isArray(base.analystThinking) ? base.analystThinking : [],
+        rubric: base.rubric ?? null,
+        errorPatterns: Array.isArray(base.errorPatterns) ? base.errorPatterns : [],
+        tags: Array.isArray(base.tags) ? base.tags : [],
+        analyticalStages: Array.isArray(base.analyticalStages) ? base.analyticalStages : [...getAnalyticalActivity(base.id).stages],
+        analyticalRubric: Array.isArray(base.analyticalRubric) ? base.analyticalRubric : [...getAnalyticalRubric(base.id)]
+    };
+}
+
+function getExercise(exerciseId) {
+    return normalizeExercise(exerciseId);
+}
+
+
+// ================================================================
+// FASE 4 — FLUJO DE APRENDIZAJE Y PROGRESIÓN COGNITIVA
+// La progresión se deriva del modelo de ejercicios existente y de la
+// estructura pedagógica ya presente en las lecciones. No introduce
+// mastery, scoring ni bloqueos nuevos.
+// ================================================================
+const COGNITIVE_STAGE_ORDER = Object.freeze([
+    COGNITIVE_LEVELS.UNDERSTAND,
+    COGNITIVE_LEVELS.CALCULATE,
+    COGNITIVE_LEVELS.INTERPRET,
+    COGNITIVE_LEVELS.DIAGNOSE,
+    COGNITIVE_LEVELS.HYPOTHESIZE,
+    COGNITIVE_LEVELS.RECOMMEND,
+    'apply'
+]);
+
+const COGNITIVE_STAGE_LABELS = Object.freeze({
+    [COGNITIVE_LEVELS.UNDERSTAND]: 'Comprender',
+    [COGNITIVE_LEVELS.CALCULATE]: 'Calcular',
+    [COGNITIVE_LEVELS.INTERPRET]: 'Interpretar',
+    [COGNITIVE_LEVELS.DIAGNOSE]: 'Diagnosticar',
+    [COGNITIVE_LEVELS.HYPOTHESIZE]: 'Formular hipótesis',
+    [COGNITIVE_LEVELS.RECOMMEND]: 'Recomendar',
+    apply: 'Aplicar'
+});
+
+// El contenido de L5–L8 ya contiene estos pasos explícitos; aquí solo se
+// representan para hacer visible el recorrido sin crear ejercicios nuevos.
+const LESSON_COGNITIVE_FLOW = Object.freeze({
+    l1: {
+        stages: [COGNITIVE_LEVELS.CALCULATE],
+        transition: 'Ya puedes calcular la meta. El siguiente paso es interpretar el ritmo y saber si el negocio avanza como debería.'
+    },
+    l2: {
+        stages: [COGNITIVE_LEVELS.CALCULATE, COGNITIVE_LEVELS.INTERPRET],
+        transition: 'Ya puedes medir el ritmo. Ahora vas a convertir los números en señales que permitan investigar qué está cambiando.'
+    },
+    l3: {
+        stages: [COGNITIVE_LEVELS.INTERPRET],
+        transition: 'Ya puedes interpretar una variación de ventas. El siguiente salto es localizar qué driver o segmento puede explicarla.'
+    },
+    l4: {
+        stages: [COGNITIVE_LEVELS.INTERPRET],
+        transition: 'Ya puedes comparar la aportación de los canales. El siguiente paso es pasar de una señal a un diagnóstico.'
+    },
+    l5: {
+        stages: [COGNITIVE_LEVELS.DIAGNOSE, COGNITIVE_LEVELS.HYPOTHESIZE],
+        transition: 'Ya identificaste una posible causa. Ahora debes convertirla en una hipótesis verificable y definir qué evidencia la confirmaría o debilitaría.'
+    },
+    l6: {
+        stages: [COGNITIVE_LEVELS.DIAGNOSE, COGNITIVE_LEVELS.HYPOTHESIZE],
+        transition: 'Ya puedes localizar dónde se pierde la conversión. El siguiente paso es conectar el diagnóstico con una hipótesis y una acción medible.'
+    },
+    l7: {
+        stages: [COGNITIVE_LEVELS.INTERPRET],
+        transition: 'Esta lección refuerza la interpretación desde el comportamiento de clientes. En el proyecto integrador tendrás que conectar interpretación, diagnóstico, hipótesis y recomendación.'
+    },
+    l8: {
+        stages: [COGNITIVE_LEVELS.DIAGNOSE, COGNITIVE_LEVELS.HYPOTHESIZE, COGNITIVE_LEVELS.RECOMMEND, 'apply'],
+        transition: 'El proyecto integra el recorrido completo: medir, descomponer, segmentar, diagnosticar, formular hipótesis, recomendar y aplicar el análisis al negocio.'
+    },
+    cierre: {
+        stages: COGNITIVE_STAGE_ORDER,
+        transition: 'El mapa final reúne el recorrido cognitivo del curso y prepara las siguientes fases.'
+    }
+});
+
+function toCognitiveStage(level) {
+    return level === COGNITIVE_LEVELS.CASE ? 'apply' : level;
+}
+
+function getLessonCognitiveStages(lessonId) {
+    const configured = LESSON_COGNITIVE_FLOW[lessonId]?.stages;
+    if (configured?.length) return [...configured];
+    return [...new Set(getLessonExercises(lessonId).map(ex => toCognitiveStage(ex.cognitiveLevel)).filter(Boolean))];
+}
+
+function getExerciseCognitiveStage(exerciseId) {
+    const level = getExercise(exerciseId).cognitiveLevel;
+    return level ? toCognitiveStage(level) : null;
+}
+
+function getPracticedCognitiveStages() {
+    const practiced = new Set();
+    lessons.forEach(lesson => {
+        lesson.exercises.forEach(exerciseId => {
+            const state = getLearningState(exerciseId);
+            if (state.attempts > 0) {
+                const stage = getExerciseCognitiveStage(exerciseId);
+                if (stage) practiced.add(stage);
+            }
+        });
+    });
+    return practiced;
+}
+
+function getCompletedCognitiveStages() {
+    const completed = new Set();
+    lessons.forEach(lesson => {
+        lesson.exercises.forEach(exerciseId => {
+            const state = getLearningState(exerciseId);
+            if (state.completed && state.solvedCorrectly) {
+                const stage = getExerciseCognitiveStage(exerciseId);
+                if (stage) completed.add(stage);
+            }
+        });
+    });
+    return completed;
+}
+
+function getCurrentCognitiveStage(lessonId = lessons[currentIndex]?.id) {
+    const lesson = lessons.find(l => l.id === lessonId);
+    if (!lesson) return null;
+    const unfinished = lesson.exercises.find(exerciseId => !getLearningState(exerciseId).completed);
+    if (unfinished) return getExerciseCognitiveStage(unfinished);
+    const stages = getLessonCognitiveStages(lessonId);
+    return stages[stages.length - 1] || null;
+}
+
+function renderConceptEvidenceSummary(lessonId) {
+    const entries = getEvidenceForLesson(lessonId);
+    if (!entries.length) return '';
+    const rows = entries.slice(0, 8).map(entry => {
+        const evidence = entry.evidence || createConceptEvidenceRecord(entry.concept.id, entry.level);
+        const label = EVIDENCE_STATE_LABELS[evidence.state] || EVIDENCE_STATE_LABELS.not_started;
+        const levelLabel = COGNITIVE_STAGE_LABELS[entry.level] || 'Nivel no definido';
+        return `<li class="concept-evidence-row"><span><strong>${entry.concept.name}</strong><small>${levelLabel}</small></span><span class="evidence-state evidence-${evidence.state}">${label}</span></li>`;
+    }).join('');
+    return `<section class="concept-evidence" aria-label="Evidencia de aprendizaje de conceptos"><strong>Evidencia en esta lección</strong><span class="concept-evidence-note">Describe la evidencia disponible; no es una calificación.</span><ul>${rows}</ul></section>`;
+}
+
+function renderCognitiveProgression() {
+    const lesson = lessons[currentIndex];
+    if (!lesson) return;
+    const lessonEl = document.getElementById(lesson.id);
+    if (!lessonEl || typeof lessonEl.querySelector !== 'function') return;
+
+    let panel = lessonEl.querySelector('.cognitive-progression');
+    if (!panel) {
+        panel = document.createElement('section');
+        panel.className = 'cognitive-progression';
+        panel.setAttribute('aria-label', 'Ruta de aprendizaje');
+        const heading = lessonEl.querySelector('h2');
+        if (heading?.nextSibling) lessonEl.insertBefore(panel, heading.nextSibling);
+        else lessonEl.prepend(panel);
+    }
+
+    const currentStage = getCurrentCognitiveStage(lesson.id);
+    const stages = getLessonCognitiveStages(lesson.id);
+    const practiced = getPracticedCognitiveStages();
+    const completed = getCompletedCognitiveStages();
+    const transition = LESSON_COGNITIVE_FLOW[lesson.id]?.transition || '';
+
+    const stageChips = COGNITIVE_STAGE_ORDER.map(stage => {
+        const coveredHere = stages.includes(stage);
+        const isCurrent = stage === currentStage;
+        const isCompleted = completed.has(stage);
+        const isPracticed = practiced.has(stage);
+        let stateClass = 'upcoming';
+        if (isCompleted) stateClass = 'completed';
+        else if (isCurrent) stateClass = 'current';
+        else if (isPracticed) stateClass = 'practiced';
+        return `<span role="listitem" class="cognitive-stage ${stateClass}${coveredHere ? ' covered-here' : ''}" title="${coveredHere ? 'Presente en esta lección' : ''}">${isCompleted ? '✓ ' : ''}${COGNITIVE_STAGE_LABELS[stage]}</span>`;
+    }).join('');
+
+    const currentLabel = currentStage ? COGNITIVE_STAGE_LABELS[currentStage] : 'Recorrido integrado';
+    const coveredLabel = stages.length ? stages.map(stage => COGNITIVE_STAGE_LABELS[stage]).join(' → ') : 'Mapa final';
+
+    panel.innerHTML = `
+        <div class="cognitive-progression-head">
+            <div>
+                <strong>Ruta de aprendizaje</strong>
+                <span>Estás practicando: <b>${currentLabel}</b></span>
+            </div>
+            <span class="cognitive-progression-note">No es una puntuación ni una medida de dominio.</span>
+        </div>
+        <div class="cognitive-stage-list" role="list" aria-label="Progresión cognitiva">
+            ${stageChips}
+        </div>
+        <p class="cognitive-progression-detail"><strong>En esta lección:</strong> ${coveredLabel}</p>
+        ${transition ? `<p class="cognitive-transition"><strong>Qué sigue:</strong> ${transition}</p>` : ''}
+        ${renderConceptEvidenceSummary(lesson.id)}
+    `;
+}
+
+// Relación lección → ejercicio → conceptos sin cambiar la estructura legacy de lessons.
+function getLessonExercises(lessonId) {
+    const lesson = lessons.find(l => l.id === lessonId);
+    return lesson ? lesson.exercises.map(getExercise) : [];
+}
+
+// Ejemplo mínimo de la nueva estructura. No se agrega al flujo del curso.
+const fase1TestExercise = normalizeExercise({
+    id: 'fase1-test-exercise',
+    type: EXERCISE_TYPES.CALCULATION,
+    cognitiveLevel: COGNITIVE_LEVELS.INTERPRET,
+    difficulty: 1,
+    concepts: ['conversion_rate'],
+    question: 'Ejercicio técnico de compatibilidad Fase 1',
+    expectedValue: 0.042,
+    tolerance: 0.001,
+    explanation: 'Solo verifica que la estructura pueda transportar metadata pedagógica.',
+    application: 'Prueba interna de arquitectura'
+});
+
+// Validación estructural mínima de Fase 1; no afecta el flujo del alumno.
+function validatePedagogicalModel() {
+    const exerciseIds = lessons.flatMap(lesson => lesson.exercises);
+    const missing = exerciseIds.filter(id => !exerciseMetadata[id]);
+    const invalid = exerciseIds.filter(id => {
+        const exercise = getExercise(id);
+        return !Array.isArray(exercise.concepts) || !('difficulty' in exercise) || !('cognitiveLevel' in exercise);
+    });
+
+    return {
+        ok: missing.length === 0 && invalid.length === 0 && fase1TestExercise.id === 'fase1-test-exercise',
+        missing,
+        invalid
+    };
+}
+
+let currentIndex = 0;
+let lessonStatus = {}; // Rastrea lectura y completado
+let exerciseStatus = {}; // Compatibilidad: true = resuelto correctamente
+
+const PROGRESS_STORAGE_KEY = 'cursoAnalista.fase2.progress.v1';
+const PERSISTENCE_SCHEMA_VERSION = 2;
+const PERSISTENCE_MAX_HISTORY = 100;
+let exerciseLearningState = {};
+let navigationState = { activeView: 'course', activeActivityId: null };
+let persistenceState = { status: 'healthy', schemaVersion: PERSISTENCE_SCHEMA_VERSION, migratedFrom: null, error: null };
+let lastPersistedSignature = null;
+let persistenceMetrics = { writes: 0, skippedWrites: 0, lastWriteMs: 0, lastPayloadBytes: 0 };
+let pendingImportText = null;
+
+function createExerciseLearningState() {
+    return {
+        attempts: 0,
+        attemptResults: [],
+        hintsUsed: 0,
+        revealedHints: [],
+        firstAttemptCorrect: false,
+        completed: false,
+        solvedCorrectly: false,
+        solutionViewed: false,
+        errorHistory: [],
+        lastErrorType: null,
+        qualitativeCriteria: {},
+        analyticalStagesPracticed: [],
+        reviewCount: 0,
+        lastReviewAt: null
+    };
+}
+
+function createInitialState() {
+    const lessonsState = {};
+    const exercisesState = {};
+    lessons.forEach(l => {
+        lessonsState[l.id] = { read: false, completed: false };
+        l.exercises.forEach(ex => {
+            exercisesState[ex] = createExerciseLearningState();
+        });
+    });
+    return { currentIndex: 0, lessonStatus: lessonsState, exercises: exercisesState, conceptEvidence: {}, caseLearningState: createInitialCaseState(), reviewLearningState: createReviewState(), finalAssessmentState: createFinalAssessmentState() };
+}
+
+function sanitizeExerciseState(raw) {
+    const base = createExerciseLearningState();
+    if (!raw || typeof raw !== 'object') return base;
+    const attempts = Number.isInteger(raw.attempts) && raw.attempts >= 0 ? raw.attempts : 0;
+    const hintsUsed = Number.isInteger(raw.hintsUsed) && raw.hintsUsed >= 0 ? raw.hintsUsed : 0;
+    const revealedHints = Array.isArray(raw.revealedHints)
+        ? [...new Set(raw.revealedHints.filter(Number.isInteger).filter(i => i >= 0))].sort((a,b) => a-b)
+        : [];
+    const results = Array.isArray(raw.attemptResults) ? raw.attemptResults.slice(-50) : [];
+    return {
+        attempts,
+        attemptResults: results,
+        hintsUsed: Math.min(hintsUsed, revealedHints.length),
+        revealedHints,
+        firstAttemptCorrect: attempts > 0 ? raw.firstAttemptCorrect === true : false,
+        completed: raw.completed === true && raw.solvedCorrectly === true,
+        solvedCorrectly: raw.solvedCorrectly === true,
+        solutionViewed: raw.solutionViewed === true,
+        errorHistory: Array.isArray(raw.errorHistory) ? raw.errorHistory.slice(-50) : [],
+        lastErrorType: typeof raw.lastErrorType === 'string' ? raw.lastErrorType : null,
+        qualitativeCriteria: raw.qualitativeCriteria && typeof raw.qualitativeCriteria === 'object' ? { ...raw.qualitativeCriteria } : {},
+        analyticalStagesPracticed: Array.isArray(raw.analyticalStagesPracticed) ? [...new Set(raw.analyticalStagesPracticed.filter(stage => ANALYTICAL_CHAIN.includes(stage)))] : [],
+        reviewCount: Number.isInteger(raw.reviewCount) && raw.reviewCount >= 0 ? raw.reviewCount : 0,
+        lastReviewAt: typeof raw.lastReviewAt === 'string' ? raw.lastReviewAt : null
+    };
+}
+
+function createConceptEvidenceRecord(conceptId, cognitiveLevel) {
+    return {
+        conceptId,
+        cognitiveLevel,
+        state: EVIDENCE_STATES.NOT_STARTED,
+        exerciseIds: [],
+        caseIds: [],
+        attempts: 0,
+        correct: false,
+        firstAttemptCorrect: false,
+        hintsUsed: 0,
+        solutionViewed: false,
+        errorTypes: [],
+        errorTypeCounts: {},
+        analyticalStagesPracticed: [],
+        criteriaMet: [],
+        difficultEvidence: false,
+        lastActivityAt: null
+    };
+}
+
+function normalizeConceptId(id) {
+    return typeof id === 'string' && id.trim() ? id.trim() : null;
+}
+
+function getConceptDefinition(conceptId) {
+    const id = normalizeConceptId(conceptId);
+    return id ? (concepts[id] || null) : null;
+}
+
+function getExerciseConcepts(exerciseId) {
+    const metadata = exerciseMetadata[exerciseId];
+    const normalized = getExercise(exerciseId);
+    const raw = Array.isArray(normalized.concepts) ? normalized.concepts : (metadata?.concepts || []);
+    return [...new Set(raw.map(normalizeConceptId).filter(Boolean))];
+}
+
+function deriveEvidenceState(record, exposed = false) {
+    if (!record || record.attempts === 0) {
+        return exposed ? EVIDENCE_STATES.EXPOSED : EVIDENCE_STATES.NOT_STARTED;
+    }
+    if (record.difficultEvidence) return EVIDENCE_STATES.NEEDS_REVIEW;
+    if (record.correct) return EVIDENCE_STATES.DEMONSTRATED;
+    return EVIDENCE_STATES.PRACTICED;
+}
+
+function rebuildConceptEvidence() {
+    const aggregate = {};
+    const ensure = (conceptId, cognitiveLevel) => {
+        const key = `${conceptId}::${cognitiveLevel || 'unknown'}`;
+        if (!aggregate[key]) aggregate[key] = createConceptEvidenceRecord(conceptId, cognitiveLevel || null);
+        return aggregate[key];
+    };
+
+    lessons.forEach(lesson => {
+        const lessonExposed = lessonStatus[lesson.id]?.read === true;
+        lesson.exercises.forEach(exerciseId => {
+            const state = getLearningState(exerciseId);
+            const level = getExerciseCognitiveStage(exerciseId) || getExercise(exerciseId).cognitiveLevel || null;
+            getExerciseConcepts(exerciseId).forEach(conceptId => {
+                const record = ensure(conceptId, level);
+                const definitionExists = Boolean(getConceptDefinition(conceptId));
+                // Los conceptos desconocidos se conservan como referencia segura; no se inventa su descripción.
+                void definitionExists;
+                if (!record.exerciseIds.includes(exerciseId)) record.exerciseIds.push(exerciseId);
+                if (state.attempts > 0) {
+                    const hadPreviousAttempts = record.attempts > 0;
+                    record.attempts += state.attempts;
+                    record.correct = record.correct || state.solvedCorrectly === true;
+                    record.firstAttemptCorrect = hadPreviousAttempts
+                        ? (record.firstAttemptCorrect === true && state.firstAttemptCorrect === true)
+                        : state.firstAttemptCorrect === true;
+                    record.hintsUsed += Number(state.hintsUsed) || 0;
+                    record.solutionViewed = record.solutionViewed || state.solutionViewed === true;
+                    if (Array.isArray(state.errorHistory)) {
+                        state.errorHistory.forEach(error => {
+                            if (error?.type) {
+                                if (!record.errorTypes.includes(error.type)) record.errorTypes.push(error.type);
+                                record.errorTypeCounts[error.type] = (record.errorTypeCounts[error.type] || 0) + 1;
+                            }
+                        });
+                    }
+                    record.reviewCount += Number(state.reviewCount) || 0;
+                    if (state.lastReviewAt) record.lastActivityAt = state.lastReviewAt;
+                    if (Array.isArray(state.analyticalStagesPracticed)) {
+                        state.analyticalStagesPracticed.forEach(stage => {
+                            if (ANALYTICAL_CHAIN.includes(stage) && !record.analyticalStagesPracticed.includes(stage)) record.analyticalStagesPracticed.push(stage);
+                        });
+                    }
+                    if (state.qualitativeCriteria && typeof state.qualitativeCriteria === 'object') {
+                        Object.entries(state.qualitativeCriteria).forEach(([criterion, checked]) => {
+                            if (checked === true && !record.criteriaMet.includes(criterion)) record.criteriaMet.push(criterion);
+                        });
+                    }
+                    const difficult = (Number(state.hintsUsed) || 0) > 0 || state.solutionViewed === true ||
+                        (Array.isArray(state.errorHistory) && state.errorHistory.length > 0) ||
+                        (Array.isArray(state.attemptResults) && state.attemptResults.some(result => result && result.correct === false));
+                    record.difficultEvidence = record.difficultEvidence || difficult;
+                    const results = Array.isArray(state.attemptResults) ? state.attemptResults : [];
+                    const latest = results.length ? results[results.length - 1] : null;
+                    if (latest?.timestamp) record.lastActivityAt = latest.timestamp;
+                }
+                if (lessonExposed && !record.lastActivityAt) record.lastActivityAt = null;
+                record.state = deriveEvidenceState(record, lessonExposed);
+            });
+        });
+    });
+
+    // Los casos también generan evidencia de conceptos, sin convertirse en ejercicios independientes.
+    ANALYTICAL_CASES.forEach(caseItem => {
+        const state = caseLearningState[caseItem.id] || createCaseLearningState();
+        if (state.attempts === 0) return;
+        caseItem.concepts.forEach(conceptId => {
+            caseItem.components.forEach(component => {
+                const key = `${conceptId}::${component.stage}`;
+                const record = ensure(conceptId, component.stage);
+                if (!record.caseIds.includes(caseItem.id)) record.caseIds.push(caseItem.id);
+                record.attempts += state.attempts;
+                const componentCorrect = state.componentResults?.[component.id] === true;
+                record.correct = record.correct || componentCorrect;
+                if (componentCorrect && state.attempts === 1) record.firstAttemptCorrect = true;
+                record.hintsUsed += Number(state.hintsUsed) || 0;
+                if (Array.isArray(state.errorHistory)) {
+                    state.errorHistory.forEach(error => {
+                        const type = error?.type || `case:${caseItem.id}`;
+                        if (!record.errorTypes.includes(type)) record.errorTypes.push(type);
+                        record.errorTypeCounts[type] = (record.errorTypeCounts[type] || 0) + 1;
+                    });
+                }
+                record.reviewCount += Number(state.reviewCount) || 0;
+                if (state.lastReviewAt) record.lastActivityAt = state.lastReviewAt;
+                record.analyticalStagesPracticed = [...new Set([...record.analyticalStagesPracticed, component.stage])];
+                if (state.completed) record.state = EVIDENCE_STATES.DEMONSTRATED;
+                else if (record.state !== EVIDENCE_STATES.DEMONSTRATED) record.state = EVIDENCE_STATES.PRACTICED;
+                record.lastActivityAt = state.lastActivityAt || record.lastActivityAt;
+                void key;
+            });
+        });
+    });
+
+    // Los conceptos definidos por el catálogo quedan disponibles con estado explícito solo al ser usados.
+    Object.values(aggregate).forEach(record => {
+        record.errorTypes.sort();
+        record.exerciseIds.sort();
+        record.caseIds.sort();
+        record.analyticalStagesPracticed.sort((a, b) => ANALYTICAL_CHAIN.indexOf(a) - ANALYTICAL_CHAIN.indexOf(b));
+        record.criteriaMet.sort();
+    });
+    exerciseLearningState.__conceptEvidenceRebuilt = undefined;
+    return aggregate;
+}
+
+function syncConceptEvidence() {
+    const aggregate = rebuildConceptEvidence();
+    window.__conceptEvidenceCache = aggregate;
+    return aggregate;
+}
+
+function getConceptEvidence(conceptId, cognitiveLevel = null) {
+    const aggregate = syncConceptEvidence();
+    const id = normalizeConceptId(conceptId);
+    if (!id) return null;
+    if (cognitiveLevel) return aggregate[`${id}::${cognitiveLevel}`] || createConceptEvidenceRecord(id, cognitiveLevel);
+    return Object.values(aggregate).filter(record => record.conceptId === id);
+}
+
+function getEvidenceForLesson(lessonId) {
+    const lesson = lessons.find(item => item.id === lessonId);
+    if (!lesson) return [];
+    const pairs = [];
+    lesson.exercises.forEach(exerciseId => {
+        const level = getExerciseCognitiveStage(exerciseId) || getExercise(exerciseId).cognitiveLevel || null;
+        getExerciseConcepts(exerciseId).forEach(conceptId => pairs.push({ conceptId, level }));
+    });
+    const unique = new Map(pairs.map(pair => [`${pair.conceptId}::${pair.level || 'unknown'}`, pair]));
+    return [...unique.values()].map(({conceptId, level}) => ({
+        concept: getConceptDefinition(conceptId) || { id: conceptId, name: conceptId, category: 'unknown' },
+        evidence: getConceptEvidence(conceptId, level),
+        level
+    }));
+}
+
+function registerConceptExposureForLesson(lessonId) {
+    // La exposición se deriva de la lectura persistida de la lección; no se crea un segundo evento histórico.
+    if (lessonStatus[lessonId]?.read === true) syncConceptEvidence();
+}
+
+// ================================================================
+// FASE 8 — REPASO INTELIGENTE Y REFUERZO
+// Prioridad determinística basada únicamente en evidencia observable.
+// ================================================================
+const REVIEW_RULES = Object.freeze({ RECENT_DAYS: 7, STALE_DAYS: 14, COOLDOWN_DAYS: 3, HIGH_ERROR_COUNT: 2, MEDIUM_HINTS: 1 });
+const REVIEW_PRIORITIES = Object.freeze({ HIGH: 'alta', MEDIUM: 'media', LOW: 'baja' });
+const REVIEW_PRIORITY_ORDER = Object.freeze({ alta: 3, media: 2, baja: 1 });
+let reviewLearningState = { history: [], deferredUntil: {}, activeItemId: null };
+function createReviewState() { return { history: [], deferredUntil: {}, activeItemId: null }; }
+function sanitizeReviewState(raw) {
+    const base = createReviewState();
+    if (!raw || typeof raw !== 'object') return base;
+    return { history: Array.isArray(raw.history) ? raw.history.slice(-100) : [], deferredUntil: raw.deferredUntil && typeof raw.deferredUntil === 'object' ? { ...raw.deferredUntil } : {}, activeItemId: typeof raw.activeItemId === 'string' ? raw.activeItemId : null };
+}
+function daysSince(iso) { const t=Date.parse(iso||''); return Number.isFinite(t) ? Math.max(0,(Date.now()-t)/86400000) : Infinity; }
+function countReviewErrors(state) { return Array.isArray(state?.errorHistory) ? state.errorHistory.length : 0; }
+function hasRepeatedErrorType(state) { const counts={}; (state?.errorHistory||[]).forEach(error=>{const type=error?.type||error?.component||'unknown'; counts[type]=(counts[type]||0)+1;}); return Object.values(counts).some(n=>n>=2); }
+function reviewCooldownActive(itemId) { const until=reviewLearningState.deferredUntil?.[itemId]; return Boolean(until && Date.parse(until)>Date.now()); }
+function classifyReviewPriority({errors=0,repeatedError=false,recent=false,incomplete=false,hints=0,solutionViewed=false,stale=false}) {
+    if ((errors>=REVIEW_RULES.HIGH_ERROR_COUNT && recent) || repeatedError || errors>=REVIEW_RULES.HIGH_ERROR_COUNT) return REVIEW_PRIORITIES.HIGH;
+    if (incomplete && (hints>=REVIEW_RULES.MEDIUM_HINTS || solutionViewed)) return REVIEW_PRIORITIES.MEDIUM;
+    if (hints>=REVIEW_RULES.MEDIUM_HINTS || solutionViewed || incomplete) return REVIEW_PRIORITIES.MEDIUM;
+    if (stale) return REVIEW_PRIORITIES.LOW;
+    return null;
+}
+function buildReviewCandidate(id,kind,title,concepts,cognitiveLevel,state,extra={}) {
+    const errors=countReviewErrors(state), recent=daysSince(state.lastActivityAt)<=REVIEW_RULES.RECENT_DAYS, stale=daysSince(state.lastActivityAt)>=REVIEW_RULES.STALE_DAYS;
+    const priority=classifyReviewPriority({errors,repeatedError:hasRepeatedErrorType(state),recent,incomplete:!state.completed&&(state.attempts||0)>0,hints:state.hintsUsed||0,solutionViewed:state.solutionViewed===true,stale});
+    if (!priority || reviewCooldownActive(id)) return null;
+    const lastReview=[...reviewLearningState.history].reverse().find(item=>item.itemId===id&&item.action==='completed');
+    if (lastReview && daysSince(lastReview.timestamp)<REVIEW_RULES.COOLDOWN_DAYS) return null;
+    return { itemId:id,kind,title,concepts:[...new Set(concepts||[])],cognitiveLevel:cognitiveLevel||null,priority,reason:hasRepeatedErrorType(state)?'error repetido':errors?'errores registrados':state.hintsUsed?'uso de pistas':state.solutionViewed?'solución revisada':stale?'refuerzo preventivo':'práctica incompleta',attempts:state.attempts||0,hintsUsed:state.hintsUsed||0,errors,solutionViewed:state.solutionViewed===true,lastActivityAt:state.lastActivityAt||null,reviewCount:state.reviewCount||0,...extra };
+}
+function generateReviewPlan() {
+    const candidates=[];
+    lessons.forEach(lesson=>lesson.exercises.forEach(exerciseId=>{ const state=getLearningState(exerciseId), ex=getExercise(exerciseId); const c=buildReviewCandidate(`exercise:${exerciseId}`,'exercise',`Repaso: ${ex?.title||exerciseId}`,getExerciseConcepts(exerciseId),ex?.cognitiveLevel,state,{sourceId:exerciseId,sourceLabel:'Ejercicio del curso'}); if(c)candidates.push(c); }));
+    ANALYTICAL_CASES.forEach(c=>{ const state=getCaseState(c.id), item=buildReviewCandidate(`case:${c.id}`,'case',`Repaso: ${c.title}`,c.concepts,`caso-nivel-${c.level}`,state,{sourceId:c.id,sourceLabel:'Caso del laboratorio'}); if(item)candidates.push(item); });
+    return candidates.sort((a,b)=>REVIEW_PRIORITY_ORDER[b.priority]-REVIEW_PRIORITY_ORDER[a.priority]||b.errors-a.errors||b.hintsUsed-a.hintsUsed||a.itemId.localeCompare(b.itemId));
+}
+function deferReview(itemId) { const until=new Date(Date.now()+REVIEW_RULES.COOLDOWN_DAYS*86400000).toISOString(); reviewLearningState.deferredUntil[itemId]=until; reviewLearningState.activeItemId=null; reviewLearningState.history.push({itemId,action:'deferred',timestamp:new Date().toISOString(),until}); reviewLearningState.history=reviewLearningState.history.slice(-100); saveLearningState(); renderReviewPanel(); }
+function completeReview(itemId) {
+    const sep=itemId.indexOf(':'), kind=itemId.slice(0,sep), sourceId=itemId.slice(sep+1), now=new Date().toISOString();
+    if(kind==='exercise'){ const state=getLearningState(sourceId); state.reviewCount=(state.reviewCount||0)+1; state.lastReviewAt=now; }
+    else if(kind==='case'){ const state=getCaseState(sourceId); state.reviewCount=(state.reviewCount||0)+1; state.lastReviewAt=now; }
+    reviewLearningState.history.push({itemId,action:'completed',timestamp:now}); reviewLearningState.history=reviewLearningState.history.slice(-100); reviewLearningState.activeItemId=null; syncConceptEvidence(); saveLearningState(); renderReviewPanel();
+}
+function startReview(itemId){ if(generateReviewPlan().some(item=>item.itemId===itemId)){reviewLearningState.activeItemId=itemId;saveLearningState();renderReviewPanel();} }
+function openReviewSource(candidate){
+    if(candidate.kind==='exercise'){ const ex=candidate.sourceId; navigationState.activeActivityId=ex; navigationState.activeView='course'; const lessonIndex=lessons.findIndex(l=>l.exercises.includes(ex)); if(lessonIndex>=0){ currentIndex=lessonIndex; saveLearningState(); updateUI(); setTimeout(()=>{const el=document.getElementById(ex); if(el&&typeof el.scrollIntoView==='function')el.scrollIntoView({behavior:'smooth',block:'center'});},0); } }
+    else { navigationState.activeActivityId=candidate.sourceId; navigationState.activeView='cases'; saveLearningState(); openCaseLab(); setTimeout(()=>{const el=document.querySelector(`[data-case-id="${candidate.sourceId}"]`); if(el&&typeof el.scrollIntoView==='function')el.scrollIntoView({behavior:'smooth',block:'center'});},0); }
+}
+function renderReviewPanel(){
+    const root=document.getElementById('review-panel'); if(!root)return; const plan=generateReviewPlan(), active=plan.find(x=>x.itemId===reviewLearningState.activeItemId)||null;
+    if(active){ root.innerHTML=`<div class="review-head"><div><h2>REPASO INTELIGENTE</h2><p>Refuerzo basado en evidencia: ${active.reason}. No es una calificación global.</p></div><span class="review-priority review-${active.priority}">Necesidad ${active.priority}</span></div><div class="review-card"><p><strong>${active.title}</strong></p><p>${active.sourceLabel} · conceptos: ${active.concepts.join(', ')||'no definidos'} · nivel: ${active.cognitiveLevel||'no definido'}</p><p>Historial: ${active.attempts} intento(s), ${active.hintsUsed} pista(s), ${active.errors} error(es).</p><div class="review-actions"><button class="action-btn" type="button" data-review-open="${active.itemId}">Ir al contenido</button><button class="action-btn" type="button" data-review-complete="${active.itemId}">Completar repaso</button><button class="action-btn outline" type="button" data-review-defer="${active.itemId}">Posponer</button></div></div>`; }
+    else if(plan.length){ root.innerHTML=`<div class="review-head"><div><h2>REPASO INTELIGENTE</h2><p>Hay oportunidades de refuerzo detectadas a partir de errores, pistas, soluciones, práctica incompleta o antigüedad.</p></div><span class="review-count">${plan.length} oportunidad(es)</span></div><div class="review-list">${plan.map(item=>`<article class="review-item"><div><strong>${item.title}</strong><small>${item.sourceLabel} · ${item.reason} · ${item.concepts.slice(0,4).join(', ')}</small></div><span class="review-priority review-${item.priority}">${item.priority}</span><button class="action-btn outline" type="button" data-review-start="${item.itemId}">Iniciar</button></article>`).join('')}</div>`; }
+    else { root.innerHTML=`<div class="review-empty"><h2>REPASO INTELIGENTE</h2><p>No hay una necesidad de repaso activa según las reglas actuales. Puedes continuar el curso y volver posteriormente.</p></div>`; }
+    if (typeof root.querySelectorAll !== 'function') return;
+    root.querySelectorAll('[data-review-start]').forEach(btn=>btn.addEventListener('click',()=>startReview(btn.dataset.reviewStart)));
+    root.querySelectorAll('[data-review-open]').forEach(btn=>btn.addEventListener('click',()=>openReviewSource(plan.find(x=>x.itemId===btn.dataset.reviewOpen))));
+    root.querySelectorAll('[data-review-complete]').forEach(btn=>btn.addEventListener('click',()=>completeReview(btn.dataset.reviewComplete)));
+    root.querySelectorAll('[data-review-defer]').forEach(btn=>btn.addEventListener('click',()=>deferReview(btn.dataset.reviewDefer)));
+}
+
+
+// ================================================================
+// FASE 9 — DASHBOARD DE APRENDIZAJE DEL ALUMNO
+// Vista descriptiva construida únicamente a partir de evidencia existente.
+// No calcula mastery, ranking, predicciones ni score global.
+// ================================================================
+const DASHBOARD_STAGE_ORDER = Object.freeze(['understand','calculate','interpret','diagnose','hypothesize','recommend']);
+const DASHBOARD_STAGE_LABELS = Object.freeze({
+    understand:'Comprender', calculate:'Calcular', interpret:'Interpretar', diagnose:'Diagnosticar',
+    hypothesize:'Hipótesis', recommend:'Recomendación'
+});
+const ERROR_TYPE_LABELS = Object.freeze({
+    percentage_scale:'escala porcentual', formula:'fórmula', substitution:'sustitución',
+    arithmetic:'aritmética', unit:'unidades', sign:'signo', range:'rango', conceptual:'concepto',
+    invalid:'entrada inválida', unknown:'respuesta abierta'
+});
+function dashboardEvidenceRecords(){
+    syncConceptEvidence();
+    return Object.values(exerciseLearningState.__conceptEvidenceRebuilt || window.__conceptEvidenceCache || {});
+}
+function getDashboardData(){
+    const records=dashboardEvidenceRecords();
+    const uniqueConcepts=[...new Set(records.map(r=>r.conceptId).filter(Boolean))];
+    const practicedConcepts=uniqueConcepts.filter(id=>records.some(r=>r.conceptId===id && ['practiced','demonstrated','needs_review'].includes(r.state)));
+    const difficultConcepts=uniqueConcepts.filter(id=>records.some(r=>r.conceptId===id && (r.difficultEvidence || r.state==='needs_review')));
+    const levels={};
+    records.forEach(r=>{if(r.cognitiveLevel && r.attempts>0) levels[r.cognitiveLevel]=true;});
+    const completedLessons=lessons.filter(l=>l.id!=='cierre' && lessonStatus[l.id]?.completed).length;
+    const totalLessons=lessons.filter(l=>l.id!=='cierre').length;
+    const exerciseIds=lessons.flatMap(l=>l.exercises);
+    const completedExercises=exerciseIds.filter(id=>getLearningState(id).solvedCorrectly).length;
+    const pendingActivities=exerciseIds.filter(id=>!getLearningState(id).solvedCorrectly).length;
+    const casesAvailable=ANALYTICAL_CASES.length;
+    const casesCompleted=ANALYTICAL_CASES.filter(c=>getCaseState(c.id).completed).length;
+    const casesPending=casesAvailable-casesCompleted;
+    const reviewPlan=generateReviewPlan();
+    const stages={};
+    DASHBOARD_STAGE_ORDER.forEach(stage=>stages[stage]=records.some(r=>r.analyticalStagesPracticed?.includes(stage)||r.cognitiveLevel===stage));
+    const errorCounts={};
+    records.forEach(r=>Object.entries(r.errorTypeCounts||{}).forEach(([type,n])=>errorCounts[type]=(errorCounts[type]||0)+n));
+    const strengths=[];
+    exerciseIds.forEach(id=>{const st=getLearningState(id);if(st.firstAttemptCorrect) strengths.push({id,title:getExercise(id)?.title||id});});
+    return {records,uniqueConcepts,practicedConcepts,difficultConcepts,levels,completedLessons,totalLessons,completedExercises,totalExercises:exerciseIds.length,pendingActivities,casesAvailable,casesCompleted,casesPending,reviewPlan,stages,errorCounts,strengths};
+}
+function dashboardNextStep(data){
+    const fa=evaluateFinalAssessment();
+    if(fa.passed || finalAssessmentState.lastResult?.passed) return {text:'La evaluación final ya tiene evidencia completa. Puedes revisar tu resultado o continuar practicando.',action:'assessment'};
+    if(data.reviewPlan.length) return {text:`Tienes ${data.reviewPlan.length} actividad(es) de repaso disponible(s).`,action:'review'};
+    if(fa.metCount >= 5) return {text:'Ya tienes evidencia suficiente para intentar la evaluación final integral.',action:'assessment'};
+    const pendingExercise=lessons.flatMap(l=>l.exercises).find(id=>!getLearningState(id).solvedCorrectly);
+    if(pendingExercise){const lessonIndex=lessons.findIndex(l=>l.exercises.includes(pendingExercise));return {text:`Continúa con ${getExercise(pendingExercise)?.title||'la siguiente actividad'}.`,action:'exercise',exerciseId:pendingExercise,lessonIndex};}
+    const pendingCase=ANALYTICAL_CASES.find(c=>!getCaseState(c.id).completed);
+    if(pendingCase) return {text:`Tu siguiente actividad es ${pendingCase.title}.`,action:'case'};
+    return {text:'Has recorrido todas las actividades disponibles. Puedes volver a practicar o revisar tus casos.',action:'course'};
+}
+function dashboardConceptName(id){return getConceptDefinition(id)?.name || id;}
+function openDashboard(){
+    const root=document.getElementById('dashboard-panel'); if(!root)return;
+    const wasHidden=root.classList.contains('hidden');
+    const review=document.getElementById('review-panel'), lab=document.getElementById('case-lab');
+    if(review)review.classList.add('hidden'); if(lab)lab.classList.add('hidden');
+    root.classList.toggle('hidden', !wasHidden);
+    document.querySelectorAll('.lesson').forEach(el=>el.classList.toggle('active', wasHidden ? false : el.id === lessons[currentIndex].id));
+    const btn=document.getElementById('dashboard-btn'); if(btn){btn.setAttribute('aria-expanded',String(wasHidden));btn.textContent=wasHidden?'Volver al curso':'Mi aprendizaje';
+    if (wasHidden) btn.setAttribute('aria-label','Volver al curso desde Mi aprendizaje');}
+    const rb=document.getElementById('review-btn'); if(rb){rb.textContent='Repaso';rb.setAttribute('aria-expanded','false');}
+    const lb=document.getElementById('lab-btn'); if(lb){lb.textContent='Laboratorio';lb.setAttribute('aria-expanded','false');}
+    if(wasHidden){navigationState.activeView='dashboard'; saveLearningState(); renderDashboard();mainContainer.scrollTop=0; setTimeout(() => document.querySelector('#dashboard-panel h2, #dashboard-panel button')?.focus(), 0);} else { navigationState.activeView='course'; saveLearningState(); }
+}
+function closeDashboard(){const root=document.getElementById('dashboard-panel');if(root)root.classList.add('hidden');navigationState.activeView='course';saveLearningState();document.querySelectorAll('.lesson').forEach(el=>el.classList.toggle('active',el.id===lessons[currentIndex].id));const btn=document.getElementById('dashboard-btn');if(btn){btn.setAttribute('aria-expanded','false');btn.textContent='Mi aprendizaje';}}
+function renderDashboard(){
+    const root=document.getElementById('dashboard-panel');if(!root)return;
+    const d=getDashboardData(), next=dashboardNextStep(d);
+    const lessonPct=d.totalLessons?Math.round(d.completedLessons/d.totalLessons*100):0;
+    const exercisePct=d.totalExercises?Math.round(d.completedExercises/d.totalExercises*100):0;
+    const levelLabels=['understand','calculate','interpret','diagnose','hypothesize','recommend'];
+    const levelsHtml=levelLabels.map(level=>`<span class="dashboard-stage ${d.stages[level]?'done':''}">${d.stages[level]?'✓ ':''}${DASHBOARD_STAGE_LABELS[level]}</span>`).join('');
+    const strengthsHtml=d.strengths.length?d.strengths.slice(0,4).map(x=>`<li>Resolviste correctamente al primer intento: <strong>${x.title}</strong>.</li>`).join(''):'<li>Aún no hay evidencia suficiente de fortalezas al primer intento.</li>';
+    const practiceHtml=d.difficultConcepts.length?d.difficultConcepts.slice(0,6).map(id=>`<li>El concepto <strong>${dashboardConceptName(id)}</strong> tiene evidencia de dificultad.</li>`).join(''):'<li>No hay conceptos con evidencia de dificultad acumulada.</li>';
+    const errors=Object.entries(d.errorCounts).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const errorHtml=errors.length?errors.map(([type,n])=>`<li>Has registrado ${n} señal(es) relacionadas con <strong>${ERROR_TYPE_LABELS[type]||type}</strong>.</li>`).join(''):'';
+    root.innerHTML=`<div class="dashboard-head"><div><h2>DASHBOARD DE APRENDIZAJE</h2><p>Una lectura de tu progreso basada en evidencia real del curso. No es una calificación global.</p></div><button class="action-btn outline" type="button" id="dashboard-close">Cerrar</button></div>
+      <section class="dashboard-section dashboard-next"><h3>Siguiente paso</h3><p>${next.text}</p><div class="dashboard-actions">${next.action==='review'?'<button class="action-btn" type="button" data-dashboard-review="1">Abrir repaso</button>':next.action==='assessment'?'<button class="action-btn" type="button" data-dashboard-assessment="1">Abrir evaluación final</button>':next.action==='exercise'?'<button class="action-btn" type="button" data-dashboard-exercise="'+next.exerciseId+'">Ir a la actividad</button>':next.action==='case'?'<button class="action-btn" type="button" data-dashboard-case="1">Abrir laboratorio</button>':''}</div></section>
+      <div class="dashboard-grid">
+        <section class="dashboard-section"><h3>¿Dónde estoy?</h3><div class="dashboard-metrics"><div><strong>${lessonPct}%</strong><span>lecciones completadas (${d.completedLessons}/${d.totalLessons})</span></div><div><strong>${exercisePct}%</strong><span>ejercicios resueltos (${d.completedExercises}/${d.totalExercises})</span></div><div><strong>${d.pendingActivities}</strong><span>actividades pendientes</span></div></div></section>
+        <section class="dashboard-section"><h3>Conceptos</h3><ul class="dashboard-list"><li>${d.uniqueConcepts.length} conceptos con evidencia o exposición.</li><li>${d.practicedConcepts.length} conceptos practicados.</li><li>${d.difficultConcepts.length} conceptos con evidencia de dificultad.</li></ul></section>
+      </div>
+      <section class="dashboard-section"><h3>Pensamiento analítico</h3><div class="dashboard-stages">${levelsHtml}</div><p class="dashboard-note">Las etapas muestran evidencia de práctica; no representan una nota.</p></section>
+      <div class="dashboard-grid">
+        <section class="dashboard-section"><h3>Fortalezas observables</h3><ul class="dashboard-list">${strengthsHtml}</ul></section>
+        <section class="dashboard-section"><h3>Áreas de práctica</h3><ul class="dashboard-list">${practiceHtml}${errorHtml}</ul></section>
+      </div>
+      <div class="dashboard-grid">
+        <section class="dashboard-section"><h3>Casos</h3><ul class="dashboard-list"><li>${d.casesCompleted} casos completados.</li><li>${d.casesAvailable} casos disponibles.</li><li>${d.casesPending} casos pendientes.</li></ul></section>
+        <section class="dashboard-section"><h3>Repaso</h3><p>${d.reviewPlan.length?`${d.reviewPlan.length} actividad(es) de repaso disponibles.`:'No hay actividades de repaso disponibles según las reglas actuales.'}</p></section>
+      </div>
+      <section class="dashboard-section"><h3>Evaluación final</h3><p>${finalAssessmentState.lastResult ? (finalAssessmentState.lastResult.passed ? 'Completada y superada según los criterios definidos.' : 'Completada y requiere refuerzo antes de reintentar.') : (evaluateFinalAssessment().metCount ? 'Disponible: ya existe evidencia parcial.' : 'Pendiente: primero desarrolla la evidencia de las competencias del curso.')}</p><div class="dashboard-actions"><button class="action-btn outline" type="button" data-dashboard-assessment="1">Abrir evaluación final</button></div></section>
+      <section class="dashboard-section dashboard-tools"><h3>Continuidad del aprendizaje</h3><p>Puedes guardar una copia de tu progreso para retomarlo más adelante o trasladarlo a otra sesión. El respaldo contiene solo datos necesarios para reconstruir tu aprendizaje.</p><div class="dashboard-actions dashboard-tool-actions"><button class="action-btn outline" type="button" id="export-progress">Exportar progreso</button><button class="action-btn outline" type="button" id="import-progress">Importar progreso</button><button class="action-btn danger" type="button" id="reset-progress">Reiniciar progreso</button><input id="import-progress-file" type="file" accept="application/json,.json" hidden></div></section>`;
+    if (typeof root.querySelector !== 'function') return;
+    const close=root.querySelector('#dashboard-close'); if(close)close.addEventListener('click',closeDashboard);
+    const rb=root.querySelector('[data-dashboard-review]'); if(rb)rb.addEventListener('click',()=>openReviewPanel());
+    const cb=root.querySelector('[data-dashboard-case]'); if(cb)cb.addEventListener('click',()=>openCaseLab());
+    const ab=root.querySelector('[data-dashboard-assessment]'); if(ab)ab.addEventListener('click',()=>openFinalAssessment());
+    const eb=root.querySelector('[data-dashboard-exercise]'); if(eb)eb.addEventListener('click',()=>{const id=eb.dataset.dashboardExercise;const idx=lessons.findIndex(l=>l.exercises.includes(id));if(idx>=0){currentIndex=idx;closeDashboard();updateUI();setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'}),0);}});
+    const exportBtn=root.querySelector('#export-progress'); if(exportBtn)exportBtn.addEventListener('click',exportLearningProgress);
+    const importBtn=root.querySelector('#import-progress'), fileInput=root.querySelector('#import-progress-file'); if(importBtn&&fileInput)importBtn.addEventListener('click',()=>fileInput.click()); if(fileInput)fileInput.addEventListener('change',()=>handleImportFile(fileInput.files?.[0]));
+    const resetBtn=root.querySelector('#reset-progress'); if(resetBtn)resetBtn.addEventListener('click',()=>{ pendingNavigationDirection=null; openPersistenceResetModal(); });
+}
+
+function sanitizeNavigationState(raw) {
+    const validActivityIds = new Set(lessons.flatMap(lesson => lesson.exercises || []));
+    ANALYTICAL_CASES.forEach(item => validActivityIds.add(item.id));
+    const candidateActivityId = typeof raw?.activeActivityId === 'string' ? raw.activeActivityId.trim() : '';
+    return {
+        activeView: ['course','dashboard','review','cases','assessment'].includes(raw?.activeView) ? raw.activeView : 'course',
+        activeActivityId: validActivityIds.has(candidateActivityId) ? candidateActivityId : null
+    };
+}
+
+function buildPersistableState() {
+    syncConceptEvidence();
+    return {
+        schemaVersion: PERSISTENCE_SCHEMA_VERSION,
+        currentIndex,
+        lessonStatus,
+        exercises: exerciseLearningState,
+        caseLearningState,
+        reviewLearningState,
+        finalAssessmentState,
+        navigation: sanitizeNavigationState(navigationState)
+    };
+}
+
+function migratePersistedState(raw) {
+    if (!raw || typeof raw !== 'object') return { state: null, migratedFrom: null };
+    const version = Number.isInteger(raw.schemaVersion) ? raw.schemaVersion : (Number.isInteger(raw.version) ? raw.version : 1);
+    if (version > PERSISTENCE_SCHEMA_VERSION) return { state: null, migratedFrom: null, unsupportedVersion: version };
+    if (version === PERSISTENCE_SCHEMA_VERSION) return { state: raw, migratedFrom: null };
+    return {
+        state: {
+            schemaVersion: PERSISTENCE_SCHEMA_VERSION,
+            currentIndex: raw.currentIndex,
+            lessonStatus: raw.lessonStatus,
+            exercises: raw.exercises,
+            caseLearningState: raw.caseLearningState,
+            reviewLearningState: raw.reviewLearningState,
+            finalAssessmentState: raw.finalAssessmentState,
+            navigation: sanitizeNavigationState(raw.navigation)
+        },
+        migratedFrom: version
+    };
+}
+
+function validatePersistedState(raw) {
+    if (!raw || typeof raw !== 'object') return { ok: true, reasons: [] };
+    const reasons = [];
+    if (!Number.isInteger(raw.currentIndex) || raw.currentIndex < 0 || raw.currentIndex >= lessons.length) reasons.push('lección actual inválida');
+    if (raw.lessonStatus !== undefined && (typeof raw.lessonStatus !== 'object' || Array.isArray(raw.lessonStatus))) reasons.push('estado de lecciones inválido');
+    if (raw.exercises !== undefined && (typeof raw.exercises !== 'object' || Array.isArray(raw.exercises))) reasons.push('estado de ejercicios inválido');
+    if (raw.caseLearningState !== undefined && (typeof raw.caseLearningState !== 'object' || Array.isArray(raw.caseLearningState))) reasons.push('estado de casos inválido');
+    if (raw.reviewLearningState !== undefined && (typeof raw.reviewLearningState !== 'object' || Array.isArray(raw.reviewLearningState))) reasons.push('estado de repaso inválido');
+    if (raw.finalAssessmentState !== undefined && (typeof raw.finalAssessmentState !== 'object' || Array.isArray(raw.finalAssessmentState))) reasons.push('estado de evaluación final inválido');
+    return { ok: reasons.length === 0, reasons };
+}
+
+function showPersistenceNotice(message, severity='warning') {
+    const el = document.getElementById('persistence-notice');
+    if (!el) return;
+    el.textContent = message;
+    el.dataset.severity = severity;
+    el.hidden = false;
+}
+
+function clearPersistenceNotice() {
+    const el = document.getElementById('persistence-notice');
+    if (el) el.hidden = true;
+}
+
+function serializePersistableState() {
+    const started = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+    const payload = JSON.stringify(buildPersistableState());
+    const ended = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+    persistenceMetrics.lastWriteMs = Math.max(0, ended-started);
+    persistenceMetrics.lastPayloadBytes = payload.length;
+    return payload;
+}
+
+function saveLearningState(options={}) {
+    if (persistenceState.status === 'corrupt' || persistenceState.status === 'unsupported') return false;
+    try {
+        const payload = serializePersistableState();
+        if (!options.force && payload === lastPersistedSignature) {
+            persistenceMetrics.skippedWrites += 1;
+            return true;
+        }
+        localStorage.setItem(PROGRESS_STORAGE_KEY, payload);
+        lastPersistedSignature = payload;
+        persistenceMetrics.writes += 1;
+        persistenceState.status = 'healthy';
+        persistenceState.error = null;
+        if (typeof renderDashboard === 'function' && document.getElementById('dashboard-panel')) renderDashboard();
+        return true;
+    } catch (error) {
+        persistenceState.status = 'write_error';
+        persistenceState.error = error?.message || 'No se pudo guardar el progreso.';
+        showPersistenceNotice('No pudimos guardar tu progreso en este momento. Evita cerrar la aplicación hasta reintentarlo.', 'error');
+        console.warn('No se pudo guardar el progreso:', error);
+        return false;
+    }
+}
+
+function loadLearningState() {
+    const initial = createInitialState();
+    try {
+        const rawText = localStorage.getItem(PROGRESS_STORAGE_KEY);
+        if (!rawText) {
+            lessonStatus = initial.lessonStatus;
+            exerciseLearningState = initial.exercises;
+            loadCaseState(null);
+            reviewLearningState = createReviewState();
+            finalAssessmentState = createFinalAssessmentState();
+            navigationState = { activeView:'course', activeActivityId:null };
+            persistenceState = { status:'healthy', schemaVersion:PERSISTENCE_SCHEMA_VERSION, migratedFrom:null, error:null };
+            lastPersistedSignature = null;
+            return;
+        }
+        let raw;
+        try { raw = JSON.parse(rawText); }
+        catch (error) {
+            lessonStatus = initial.lessonStatus; exerciseLearningState = initial.exercises; loadCaseState(null); reviewLearningState=createReviewState(); finalAssessmentState=createFinalAssessmentState();
+            navigationState={activeView:'course',activeActivityId:null};
+            persistenceState={status:'corrupt',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:null,error:'JSON inválido'};
+            showPersistenceNotice('No pudimos leer tu progreso guardado. No lo sobrescribiremos automáticamente; puedes importar un respaldo válido o reiniciar de forma explícita.', 'error');
+            return;
+        }
+        const migrated = migratePersistedState(raw);
+        if (migrated.unsupportedVersion) {
+            lessonStatus = initial.lessonStatus; exerciseLearningState = initial.exercises; loadCaseState(null); reviewLearningState=createReviewState(); finalAssessmentState=createFinalAssessmentState();
+            navigationState={activeView:'course',activeActivityId:null};
+            persistenceState={status:'unsupported',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:null,error:`Versión ${migrated.unsupportedVersion} no compatible`};
+            showPersistenceNotice('Este progreso pertenece a una versión más reciente del curso. No lo sobrescribiremos.', 'error');
+            return;
+        }
+        const saved=migrated.state;
+        const validation=validatePersistedState(saved);
+        if (!validation.ok) {
+            lessonStatus=initial.lessonStatus; exerciseLearningState=initial.exercises; loadCaseState(null); reviewLearningState=createReviewState(); finalAssessmentState=createFinalAssessmentState(); navigationState={activeView:'course',activeActivityId:null};
+            persistenceState={status:'corrupt',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:migrated.migratedFrom,error:validation.reasons.join(', ')};
+            showPersistenceNotice('Encontramos datos de progreso incompletos o inválidos. Conservamos el archivo guardado y evitaremos sobrescribirlo automáticamente.', 'error');
+            return;
+        }
+        currentIndex = Number.isInteger(saved.currentIndex) && saved.currentIndex >= 0 && saved.currentIndex < lessons.length ? saved.currentIndex : 0;
+        for (const lesson of lessons) {
+            const rawLesson=saved.lessonStatus?.[lesson.id];
+            if (rawLesson) { initial.lessonStatus[lesson.id].read=rawLesson.read===true; initial.lessonStatus[lesson.id].completed=rawLesson.completed===true; }
+            for (const ex of lesson.exercises) initial.exercises[ex]=sanitizeExerciseState(saved.exercises?.[ex]);
+        }
+        loadCaseState(saved.caseLearningState);
+        reviewLearningState=sanitizeReviewState(saved.reviewLearningState);
+        finalAssessmentState=sanitizeFinalAssessmentState(saved.finalAssessmentState);
+        navigationState=sanitizeNavigationState(saved.navigation);
+        lessonStatus=initial.lessonStatus; exerciseLearningState=initial.exercises;
+        syncConceptEvidence();
+        lessons.forEach(l=>l.exercises.forEach(ex=>{exerciseStatus[ex]=exerciseLearningState[ex].solvedCorrectly;}));
+        persistenceState={status:'healthy',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:migrated.migratedFrom,error:null};
+        lastPersistedSignature=rawText;
+        if (migrated.migratedFrom) {
+            saveLearningState({force:true});
+            persistenceState.migratedFrom=migrated.migratedFrom;
+        }
+    } catch (error) {
+        console.warn('No se pudo recuperar el progreso:', error);
+        persistenceState={status:'corrupt',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:null,error:error?.message||'recuperación fallida'};
+        showPersistenceNotice('No pudimos recuperar el progreso guardado. No se sobrescribirá automáticamente.', 'error');
+    }
+}
+
+
+function setActiveView(view, activeActivityId=navigationState.activeActivityId) {
+    navigationState={activeView:['course','dashboard','review','cases','assessment'].includes(view)?view:'course',activeActivityId:activeActivityId||null};
+    saveLearningState();
+}
+
+function exportLearningProgress() {
+    const payload=serializePersistableState();
+    const blob=new Blob([payload],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='curso-analista-progreso.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+    return payload;
+}
+
+function importLearningProgressFromText(text) {
+    let parsed;
+    try { parsed=JSON.parse(text); } catch(error) { throw new Error('El archivo no contiene JSON válido.'); }
+    const migrated=migratePersistedState(parsed);
+    if (migrated.unsupportedVersion) throw new Error(`La versión ${migrated.unsupportedVersion} no es compatible con esta aplicación.`);
+    const validation=validatePersistedState(migrated.state);
+    if (!validation.ok) throw new Error(`El respaldo no es válido: ${validation.reasons.join(', ')}.`);
+    localStorage.setItem(PROGRESS_STORAGE_KEY,JSON.stringify(migrated.state));
+    lastPersistedSignature=null;
+    loadLearningState();
+    updateUI();
+    renderCaseLab(); renderReviewPanel(); renderDashboard();
+    restoreLastView();
+    clearPersistenceNotice();
+    return true;
+}
+
+function resetLearningProgress() {
+    localStorage.removeItem(PROGRESS_STORAGE_KEY);
+    currentIndex=0; lessonStatus=createInitialState().lessonStatus; exerciseLearningState=createInitialState().exercises;
+    exerciseStatus={}; lessons.forEach(l=>l.exercises.forEach(ex=>exerciseStatus[ex]=false));
+    loadCaseState(null); reviewLearningState=createReviewState(); finalAssessmentState=createFinalAssessmentState(); navigationState={activeView:'course',activeActivityId:null};
+    persistenceState={status:'healthy',schemaVersion:PERSISTENCE_SCHEMA_VERSION,migratedFrom:null,error:null}; lastPersistedSignature=null;
+    saveLearningState({force:true}); updateUI(); renderCaseLab(); renderReviewPanel(); renderDashboard(); clearPersistenceNotice();
+    return true;
+}
+
+function requestImportProgress(text) { pendingImportText=String(text||''); pendingNavigationDirection='__import__'; openPersistenceImportModal(); }
+
+function openPersistenceImportModal() { const modal=document.getElementById('warning-modal'); if(!modal)return false; const title=document.getElementById('warning-title'), message=document.getElementById('warning-message'), confirmBtn=document.getElementById('warning-confirm'), cancelBtn=document.getElementById('warning-cancel'); warningPreviousFocus=document.activeElement; if(title)title.textContent='Importar progreso'; if(message)message.textContent='Esto reemplazará el progreso actual por el respaldo seleccionado. Primero validaremos su versión y estructura. ¿Quieres continuar?'; if(cancelBtn)cancelBtn.textContent='No, conservar progreso'; if(confirmBtn){confirmBtn.textContent='Sí, importar';confirmBtn.focus();} modal.hidden=false; modal.classList.add('is-open'); return true; }
+
+function handleImportFile(file) {
+    if (!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{ requestImportProgress(String(reader.result||'')); };
+    reader.onerror=()=>showPersistenceNotice('No se pudo leer el archivo de respaldo.','error');
+    reader.readAsText(file);
+}
+
+function restoreLastView() {
+    if (navigationState.activeView==='dashboard') openDashboard();
+    else if (navigationState.activeView==='review') openReviewPanel();
+    else if (navigationState.activeView==='cases') openCaseLab();
+    else if (navigationState.activeView==='assessment') openFinalAssessment();
+}
+
+loadLearningState();
+
+// Elementos del DOM
+const mainContainer = document.getElementById('main-content');
+const progressBar = document.getElementById('reading-progress-bar');
+const titleEl = document.getElementById('lesson-title');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const orientationLessonEl = document.getElementById('orientation-lesson');
+const orientationStepEl = document.getElementById('orientation-step');
+let pendingNavigationDirection = null;
+let warningPreviousFocus = null;
+
+// --- SISTEMA DE NAVEGACIÓN Y RENDERIZADO ---
+function updateUI() {
+    const lab = document.getElementById('case-lab');
+    if (lab) lab.classList.add('hidden');
+    const review = document.getElementById('review-panel');
+    if (review) review.classList.add('hidden');
+    const assessment = document.getElementById('final-assessment-panel');
+    if (assessment) assessment.classList.add('hidden');
+    const assessmentBtn = document.getElementById('assessment-btn');
+    if (assessmentBtn) { assessmentBtn.textContent='Evaluación final'; assessmentBtn.setAttribute('aria-expanded','false'); }
+    const reviewBtn = document.getElementById('review-btn');
+    if (reviewBtn) { reviewBtn.textContent = 'Repaso'; if (typeof reviewBtn.setAttribute === 'function') reviewBtn.setAttribute('aria-expanded', 'false'); }
+    const labBtn = document.getElementById('lab-btn');
+    if (labBtn) { labBtn.textContent = 'Laboratorio'; if (typeof labBtn.setAttribute === 'function') labBtn.setAttribute('aria-expanded', 'false'); }
+    document.querySelectorAll('.lesson').forEach(el => el.classList.remove('active'));
+    document.getElementById(lessons[currentIndex].id).classList.add('active');
+
+    titleEl.innerText = lessons[currentIndex].title;
+    if (orientationLessonEl) orientationLessonEl.textContent = lessons[currentIndex].title;
+    if (orientationStepEl) {
+        const exerciseCount = lessons[currentIndex].exercises.length;
+        orientationStepEl.textContent = exerciseCount ? `${exerciseCount} actividad${exerciseCount === 1 ? '' : 'es'} en esta lección` : 'Cierre del curso';
+    }
+
+    // Controles de botones para evitar desbordes
+    prevBtn.disabled = currentIndex === 0;
+
+    if (currentIndex === lessons.length - 1) {
+        nextBtn.innerText = 'Finalizado';
+        nextBtn.disabled = true;
+    } else {
+        nextBtn.innerText = 'Siguiente →';
+        nextBtn.disabled = false;
+    }
+
+    mainContainer.scrollTop = 0;
+    updateScrollProgress();
+    updateStatsPanel();
+    renderCognitiveProgression();
+}
+
+function openReviewPanel() {
+    const review = document.getElementById('review-panel'); if (!review) return;
+    const isHidden = review.classList.toggle('hidden');
+    const lab = document.getElementById('case-lab'); if (lab && !isHidden) lab.classList.add('hidden');
+    const dashboard = document.getElementById('dashboard-panel'); if (dashboard && !isHidden) dashboard.classList.add('hidden');
+    const assessment = document.getElementById('final-assessment-panel'); if (assessment && !isHidden) assessment.classList.add('hidden');
+    const assessmentBtn = document.getElementById('assessment-btn'); if (assessmentBtn && !isHidden) { assessmentBtn.textContent='Evaluación final'; assessmentBtn.setAttribute('aria-expanded','false'); }
+    const db = document.getElementById('dashboard-btn'); if (db && !isHidden) { db.textContent='Mi aprendizaje'; db.setAttribute('aria-expanded','false'); }
+    document.querySelectorAll('.lesson').forEach(el => el.classList.toggle('active', isHidden ? el.id === lessons[currentIndex].id : false));
+    const btn = document.getElementById('review-btn');
+    if (btn) { btn.textContent = isHidden ? 'Repaso' : 'Volver al curso'; if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-expanded', String(!isHidden)); }
+    if (!isHidden) { navigationState.activeView='review'; saveLearningState(); renderReviewPanel(); mainContainer.scrollTop = 0; setTimeout(() => document.querySelector('#review-panel h2, #review-panel button')?.focus(), 0); }
+}
+
+function openCaseLab() {
+    const lab = document.getElementById('case-lab');
+    if (!lab) return;
+    const isHidden = lab.classList.toggle('hidden');
+    const dashboard = document.getElementById('dashboard-panel'); if (!isHidden && dashboard) dashboard.classList.add('hidden');
+    const assessment = document.getElementById('final-assessment-panel'); if (!isHidden && assessment) assessment.classList.add('hidden');
+    const assessmentBtn = document.getElementById('assessment-btn'); if (!isHidden && assessmentBtn) { assessmentBtn.textContent='Evaluación final'; assessmentBtn.setAttribute('aria-expanded','false'); }
+    const db = document.getElementById('dashboard-btn'); if (db && !isHidden) { db.textContent='Mi aprendizaje'; db.setAttribute('aria-expanded','false'); }
+    document.querySelectorAll('.lesson').forEach(el => el.classList.toggle('active', isHidden ? el.id === lessons[currentIndex].id : false));
+    const btn = document.getElementById('lab-btn');
+    if (btn) { if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-expanded', String(!isHidden)); btn.textContent = isHidden ? 'Casos' : 'Volver al curso'; }
+    if (isHidden) { navigationState.activeView='course'; saveLearningState(); }
+    if (!isHidden) { navigationState.activeView='cases'; saveLearningState(); renderCaseLab(); mainContainer.scrollTop = 0; setTimeout(() => document.querySelector('#case-lab h2, #case-lab button')?.focus(), 0); }
+}
+
+function openPersistenceResetModal() {
+    const modal=document.getElementById('warning-modal'); if(!modal)return false;
+    const title=document.getElementById('warning-title'), message=document.getElementById('warning-message'), confirmBtn=document.getElementById('warning-confirm'), cancelBtn=document.getElementById('warning-cancel');
+    warningPreviousFocus=document.activeElement; pendingNavigationDirection='__reset__';
+    if(title)title.textContent='Reiniciar progreso';
+    if(message)message.textContent='Esta acción eliminará tus lecciones, intentos, pistas, errores, evidencia, casos, repasos y ubicación guardada. No se puede deshacer desde la aplicación.';
+    if(cancelBtn)cancelBtn.textContent='No, conservar progreso';
+    if(confirmBtn){confirmBtn.textContent='Sí, reiniciar';confirmBtn.focus();}
+    modal.hidden=false; modal.classList.add('is-open'); return true;
+}
+
+function openWarningModal(message) {
+    const modal = document.getElementById('warning-modal');
+    const messageEl = document.getElementById('warning-message');
+    const confirmBtn = document.getElementById('warning-confirm');
+    if (!modal) return false;
+    if (messageEl) messageEl.textContent = message;
+    warningPreviousFocus = document.activeElement;
+    modal.hidden = false;
+    modal.classList.add('is-open');
+    if (confirmBtn) confirmBtn.focus();
+    return true;
+}
+function closeModal() {
+    const modal = document.getElementById('warning-modal');
+    if (!modal) return;
+    modal.hidden = true;
+    modal.classList.remove('is-open');
+    pendingNavigationDirection = null;
+    const title=document.getElementById('warning-title'), cancelBtn=document.getElementById('warning-cancel'), confirmBtn=document.getElementById('warning-confirm');
+    if(title)title.textContent='Aún no terminas'; if(cancelBtn)cancelBtn.textContent='No, me quedo'; if(confirmBtn)confirmBtn.textContent='Sí, continuar';
+    if (warningPreviousFocus && typeof warningPreviousFocus.focus === 'function') warningPreviousFocus.focus();
+    warningPreviousFocus = null;
+}
+function forceNextLesson() {
+    const direction = pendingNavigationDirection;
+    if (direction === '__reset__') { closeModal(); resetLearningProgress(); return; }
+    if (direction === '__import__') { const text=pendingImportText; pendingImportText=null; closeModal(); try { importLearningProgressFromText(text); showPersistenceNotice('Progreso importado correctamente. Puedes continuar donde lo dejaste.','success'); } catch(error) { showPersistenceNotice(error.message||'No se pudo importar el progreso.','error'); } return; }
+    closeModal();
+    if (direction !== 1) return;
+    const currentL = lessons[currentIndex];
+    lessonStatus[currentL.id].completed = false;
+    currentIndex += 1;
+    saveLearningState();
+    updateUI();
+}
+
+function navigate(direction) {
+    if (direction === -1 && currentIndex === 0) return;
+    if (direction === 1 && currentIndex === lessons.length - 1) return;
+
+    if (direction === 1) {
+        const currentL = lessons[currentIndex];
+        const isRead = lessonStatus[currentL.id].read;
+        const allExercisesDone = currentL.exercises.every(ex => exerciseStatus[ex] === true);
+        if (!isRead || !allExercisesDone) {
+            const msg = [];
+            if (!isRead) msg.push('leer hasta el final');
+            if (!allExercisesDone) msg.push('resolver los ejercicios de forma exacta');
+            pendingNavigationDirection = direction;
+            openWarningModal('Te falta ' + msg.join(' y ') + '. Puedes continuar ahora; la lección quedará como incompleta.');
+            return;
+        }
+        lessonStatus[currentL.id].completed = true;
+    }
+
+    currentIndex += direction;
+    saveLearningState();
+    updateUI();
+}
+
+
+// --- RASTREO DE LECTURA (SCROLL) ---
+mainContainer.addEventListener('scroll', updateScrollProgress);
+
+function updateScrollProgress() {
+    const container = document.getElementById(lessons[currentIndex].id);
+    const totalHeight = container.offsetHeight;
+    const visibleHeight = mainContainer.clientHeight;
+    const scrollTop = mainContainer.scrollTop;
+
+    if (totalHeight <= visibleHeight + 20) {
+        progressBar.style.width = '100%';
+        lessonStatus[lessons[currentIndex].id].read = true;
+        registerConceptExposureForLesson(lessons[currentIndex].id);
+        saveLearningState();
+        return;
+    }
+
+    let progress = (scrollTop / (totalHeight - visibleHeight)) * 100;
+    progress = Math.min(progress, 100);
+    progressBar.style.width = progress + '%';
+
+    if (progress > 95) {
+        lessonStatus[lessons[currentIndex].id].read = true;
+        registerConceptExposureForLesson(lessons[currentIndex].id);
+        saveLearningState();
+    }
+}
+
+// --- ESTADÍSTICAS GLOBALES ---
+function updateStatsPanel() {
+    const totalLessons = lessons.length - 1; // Excluimos cierre
+    const completedLessons = Object.values(lessonStatus).filter(s => s.completed).length;
+
+    let totalExercises = 0;
+    let completedExercises = 0;
+    for (const key in exerciseStatus) {
+        totalExercises++;
+        if (exerciseStatus[key]) completedExercises++;
+    }
+
+    const l_pct = Math.round((completedLessons / totalLessons) * 100) || 0;
+    const e_pct = Math.round((completedExercises / (totalExercises || 1)) * 100) || 0;
+
+    document.getElementById('lessons-stat').innerText = `${l_pct}% (${completedLessons}/${totalLessons})`;
+    document.getElementById('exercises-stat').innerText = `${e_pct}% (${completedExercises}/${totalExercises})`;
+}
+
+// --- VALIDACIÓN DE EJERCICIOS (CON CIFRAS EXACTAS) ---
+function isCorrect(inputVal, expectedVal, tolerance = 1) {
+    if (isNaN(inputVal)) return false;
+    return Math.abs(inputVal - expectedVal) <= tolerance;
+}
+
+
+// ================================================================
+// FASE 3 — FEEDBACK PEDAGÓGICO Y DIAGNÓSTICO DETERMINÍSTICO
+// No intenta inferir el pensamiento del alumno: solo clasifica señales
+// que pueden demostrarse a partir de los datos del ejercicio y la respuesta.
+// ================================================================
+const analystThinking = Object.freeze({
+    'l1-e1': ['Una meta mensual debe distribuirse respetando la estacionalidad y el mix de canales.'],
+    'l1-e2': ['Una meta anual no debería dividirse en partes iguales si existe estacionalidad histórica.'],
+    'l2-e1': ['Compara el ritmo actual con el tiempo transcurrido y con el target necesario para interpretar la trayectoria.'],
+    'l2-e2': ['Un forecast simple describe el ritmo actual; un analista también incorpora eventos conocidos que pueden alterar ese ritmo.'],
+    'l3-e1': ['El cálculo muestra qué cambió; la investigación debe explicar qué driver podría estar detrás de la variación.'],
+    'l4-e1': ['Un RPS alto puede ser una señal para investigar, pero por sí solo no demuestra que un canal deba recibir más inversión.']
+});
+
+const errorProfiles = Object.freeze({
+    'l1-e1': {
+        expected: { m: 9000000, e: 4500000, a: 2700000, w: 900000, c: 900000 },
+        fields: ['m', 'e', 'a', 'w', 'c']
+    },
+    'l1-e2': {
+        expected: { e: 8400000, n: 14400000 },
+        fields: ['e', 'n']
+    },
+    'l2-e1': {
+        expected: { c: 40, t: 50, p: -10, r: 266666.67, f: 8000000, tr: 400000 },
+        fields: ['c', 't', 'p', 'r', 'f', 'tr'],
+        percentageFields: ['c', 't', 'p']
+    },
+    'l2-e2': {
+        expected: { c: 54.7, tr: 680000 },
+        fields: ['c', 'tr'],
+        percentageFields: ['c'],
+        candidateErrors: {
+            formula: { tr: 1500000 }
+        }
+    },
+    'l3-e1': {
+        expected: { va: 9000000, vb: 8379000, ra: 45, rb: 39.9 },
+        fields: ['va', 'vb', 'ra', 'rb'],
+        candidateErrors: {
+            conceptual: { ra: 1800, rb: 1900 }
+        }
+    },
+    'l4-e1': {
+        expected: { e_rps: 200 },
+        fields: ['e_rps'],
+        candidateErrors: {
+            conceptual: { e_rps: 2666.67 }
+        }
+    }
+});
+
+function getAnalystThinking(exerciseId) {
+    const metadata = exerciseMetadata[exerciseId];
+    if (metadata && Array.isArray(metadata.analystThinking)) return metadata.analystThinking;
+    return analystThinking[exerciseId] ? [...analystThinking[exerciseId]] : [];
+}
+
+function classifyQuantitativeError(exerciseId, answers) {
+    const profile = errorProfiles[exerciseId];
+    if (!profile) return { type: 'unknown', confidence: 'low' };
+
+    for (const field of profile.fields) {
+        const value = answers?.[field];
+        if (value === '' || value === null || value === undefined || Number.isNaN(Number(value))) {
+            return { type: 'invalid', field, confidence: 'high' };
+        }
+    }
+
+    // Porcentaje / escala: solo se diagnostica cuando el campo es explícitamente porcentual.
+    for (const field of (profile.percentageFields || [])) {
+        const expected = profile.expected[field];
+        const value = Number(answers[field]);
+        if (Math.abs(value - expected / 100) <= Math.max(0.01, Math.abs(expected) * 0.01)) {
+            return { type: 'percentage_scale', field, confidence: 'high' };
+        }
+        if (Math.abs(value - expected * 100) <= Math.max(1, Math.abs(expected) * 0.01)) {
+            return { type: 'percentage_scale', field, confidence: 'high' };
+        }
+    }
+
+    // Señales concretas conocidas del ejercicio: no generalizamos a partir de una sola cercanía.
+    const candidates = profile.candidateErrors || {};
+    for (const type of ['formula', 'conceptual', 'substitution', 'arithmetic', 'unit', 'sign', 'range']) {
+        const map = candidates[type] || {};
+        for (const field of Object.keys(map)) {
+            if (Math.abs(Number(answers[field]) - Number(map[field])) <= Math.max(0.01, Math.abs(Number(map[field])) * 0.001)) {
+                return { type, field, confidence: 'high' };
+            }
+        }
+    }
+
+    // Rango / plausibilidad: solo para métricas con límites inequívocos.
+    if (exerciseId === 'l2-e1' && Number(answers.c) > 100) {
+        return { type: 'range', field: 'c', confidence: 'high' };
+    }
+    if (exerciseId === 'l2-e2' && Number(answers.c) > 100) {
+        return { type: 'range', field: 'c', confidence: 'high' };
+    }
+
+    // Si no hay evidencia suficiente, no sobrediagnosticamos.
+    return { type: 'unknown', confidence: 'low' };
+}
+
+const ERROR_FEEDBACK = Object.freeze({
+    formula: {
+        title: 'Parece que el problema puede estar en la fórmula.',
+        body: 'Revisa la relación matemática antes de sustituir los valores.'
+    },
+    substitution: {
+        title: 'La fórmula parece correcta; revisa los valores utilizados.',
+        body: 'Comprueba que cada dato corresponda al periodo, variable y unidad solicitados.'
+    },
+    percentage_scale: {
+        title: 'Parece que el problema puede estar en la escala del porcentaje.',
+        body: 'Revisa la conversión entre porcentaje y decimal. Por ejemplo, 2.5% = 0.025.'
+    },
+    arithmetic: {
+        title: 'La fórmula y los valores parecen estar bien.',
+        body: 'Revisa la operación aritmética paso a paso.'
+    },
+    unit: {
+        title: 'Parece que puede haber una diferencia de unidad o formato.',
+        body: 'Revisa si estás utilizando porcentaje, decimal, pesos, miles, millones, pedidos o sesiones.'
+    },
+    sign: {
+        title: 'Revisa el sentido de la variación.',
+        body: 'Identifica primero cuál es el valor actual y cuál es la referencia.'
+    },
+    range: {
+        title: 'Revisa el rango esperado de esta métrica.',
+        body: 'Comprueba si el resultado es compatible con la definición del indicador.'
+    },
+    invalid: {
+        title: 'Necesitamos una respuesta numérica válida para continuar.',
+        body: 'Revisa el formato solicitado e introduce un valor interpretable.'
+    },
+    conceptual: {
+        title: 'Parece que puede haber una confusión entre conceptos.',
+        body: 'Revisa qué representa cada indicador antes de volver a calcular.'
+    },
+    unknown: {
+        title: 'No podemos determinar el tipo de error todavía.',
+        body: 'Revisa nuevamente la fórmula, los valores utilizados y la operación. Puedes utilizar una pista para continuar.'
+    }
+});
+
+function buildPedagogicalFeedback(exerciseId, diagnostic) {
+    const template = ERROR_FEEDBACK[diagnostic.type] || ERROR_FEEDBACK.unknown;
+    const profile = exerciseMetadata[exerciseId];
+    const conceptNames = (profile?.concepts || [])
+        .map(id => concepts[id]?.name || id)
+        .slice(0, 2);
+    const context = conceptNames.length ? ` Concepto relacionado: ${conceptNames.join(' y ')}.` : '';
+    return `${template.title} ${template.body}${context}`;
+}
+
+function recordErrorDiagnosis(exerciseId, diagnostic, feedback) {
+    const state = getLearningState(exerciseId);
+    state.errorHistory = Array.isArray(state.errorHistory) ? state.errorHistory : [];
+    state.lastErrorType = diagnostic.type;
+    state.errorHistory.push({
+        attempt: state.attempts,
+        type: diagnostic.type,
+        feedback,
+        timestamp: new Date().toISOString()
+    });
+    state.errorHistory = state.errorHistory.slice(-50);
+    saveLearningState();
+}
+
+function diagnoseAndRenderFeedback(exerciseId, answers, feedbackEl) {
+    const diagnostic = classifyQuantitativeError(exerciseId, answers);
+    const feedback = buildPedagogicalFeedback(exerciseId, diagnostic);
+    recordErrorDiagnosis(exerciseId, diagnostic, feedback);
+    if (feedbackEl) {
+        feedbackEl.innerHTML = `<div class="error-box"><strong>❌ Todavía no.</strong><br>${feedback}<br><br>Intenta nuevamente o utiliza una pista.</div>`;
+        feedbackEl.setAttribute('aria-live', 'polite');
+    }
+    renderExerciseLearningUI(exerciseId);
+    return diagnostic;
+}
+
+function markAnalyticalStagesPracticed(exerciseId) {
+    const state = getLearningState(exerciseId);
+    const stages = getExercise(exerciseId).analyticalStages || [];
+    state.analyticalStagesPracticed = [...new Set([...(state.analyticalStagesPracticed || []), ...stages])];
+    saveLearningState();
+}
+function renderAnalyticalChain(exerciseId, host) {
+    const activity = getAnalyticalActivity(exerciseId);
+    if (!activity.stages.length) return;
+    const practiced = new Set(getLearningState(exerciseId).analyticalStagesPracticed || []);
+    const steps = ANALYTICAL_CHAIN.map(stage => {
+        const active = activity.stages.includes(stage), done = practiced.has(stage);
+        return `<span class="analytic-step ${active ? (done ? 'done' : 'current') : ''}">${done ? '✓ ' : ''}${ANALYTICAL_STAGE_LABELS[stage]}</span>`;
+    }).join('<span class="analytic-arrow" aria-hidden="true">→</span>');
+    const box = document.createElement('section');
+    box.className = 'analytical-chain'; box.setAttribute('aria-label','Cadena de pensamiento analítico');
+    box.innerHTML = `<strong>CADENA DE PENSAMIENTO ANALÍTICO</strong><div class="analytical-chain-list">${steps}</div>${activity.nextQuestion ? `<p><strong>Pregunta siguiente:</strong> ${activity.nextQuestion}</p>` : ''}`;
+    host.appendChild(box);
+}
+function renderQualitativeRubric(exerciseId, host) {
+    const rubric = getAnalyticalRubric(exerciseId);
+    if (!rubric.length) return;
+    const state = getLearningState(exerciseId), values = state.qualitativeCriteria || {};
+    const box = document.createElement('section');
+    box.className = 'analytical-rubric'; box.setAttribute('aria-label','Criterios de autoevaluación analítica');
+    box.innerHTML = `<strong>Autoevaluación con criterios explícitos</strong><span class="rubric-note">Marca solo los criterios que tu respuesta realmente cumple. Esto registra evidencia; no es una calificación automática.</span><div class="rubric-list">${rubric.map(([id,label]) => `<label class="rubric-item"><input type="checkbox" data-rubric="${id}" ${values[id] === true ? 'checked' : ''}><span>${label}</span></label>`).join('')}</div><button type="button" class="action-btn outline learning-btn" data-save-rubric="${exerciseId}">Guardar autoevaluación</button><div class="rubric-feedback" aria-live="polite"></div>`;
+    box.querySelector('[data-save-rubric]').addEventListener('click', () => {
+        const criteria = {}; box.querySelectorAll('[data-rubric]').forEach(input => { criteria[input.dataset.rubric] = input.checked; });
+        state.qualitativeCriteria = criteria; markAnalyticalStagesPracticed(exerciseId); saveLearningState();
+        const count = Object.values(criteria).filter(Boolean).length;
+        box.querySelector('.rubric-feedback').textContent = `${count} de ${rubric.length} criterios marcados. Revisa especialmente los que dejaste sin marcar.`;
+        renderExerciseLearningUI(exerciseId);
+    });
+    host.appendChild(box);
+}
+
+function renderAnalystThinking(exerciseId, host) {
+    const thoughts = getAnalystThinking(exerciseId), activity = getAnalyticalActivity(exerciseId);
+    if (!thoughts.length && !activity.nextQuestion) return;
+    const box = document.createElement('div'); box.className = 'analyst-thinking'; box.setAttribute('aria-live','polite');
+    box.innerHTML = `<strong>PIENSA COMO ANALISTA</strong>${thoughts.map(t => `<p>${t}</p>`).join('')}${activity.nextQuestion ? `<p><strong>Qué preguntaría un analista después:</strong> ${activity.nextQuestion}</p>` : ''}`;
+    host.appendChild(box);
+}
+
+function getLearningState(exerciseId) {
+    if (!exerciseLearningState[exerciseId]) {
+        exerciseLearningState[exerciseId] = createExerciseLearningState();
+    }
+    return exerciseLearningState[exerciseId];
+}
+
+function markExerciseDone(exerciseId) {
+    const state = getLearningState(exerciseId);
+    state.completed = true;
+    state.solvedCorrectly = true;
+    exerciseStatus[exerciseId] = true;
+    updateStatsPanel();
+    saveLearningState();
+    renderExerciseLearningUI(exerciseId);
+    renderCognitiveProgression();
+}
+
+function markSolutionViewed(exerciseId) {
+    const state = getLearningState(exerciseId);
+    state.solutionViewed = true;
+    saveLearningState();
+}
+
+// Revelar bloque HTML de solución original. Ver la solución no completa el ejercicio.
+function revealSolution(divId, exerciseId = null) {
+    document.getElementById(divId).classList.add('show');
+    if (exerciseId) markSolutionViewed(exerciseId);
+    setTimeout(updateScrollProgress, 300);
+}
+
+function recordAttempt(exerciseId, isCorrect, answerSummary = null) {
+    navigationState.activeActivityId=exerciseId; navigationState.activeView='course';
+    const state = getLearningState(exerciseId);
+    if (state.completed && state.solvedCorrectly) return state;
+
+    state.attempts += 1;
+    if (state.attempts === 1) state.firstAttemptCorrect = isCorrect === true;
+    else if (!state.firstAttemptCorrect) state.firstAttemptCorrect = false;
+
+    state.attemptResults.push({
+        attempt: state.attempts,
+        correct: isCorrect === true,
+        answer: answerSummary,
+        timestamp: new Date().toISOString()
+    });
+    state.analyticalStagesPracticed = [...new Set([...(state.analyticalStagesPracticed || []), ...(getExercise(exerciseId).analyticalStages || [])])];
+
+    if (isCorrect) {
+        markExerciseDone(exerciseId);
+    } else {
+        state.solvedCorrectly = false;
+        state.completed = false;
+        exerciseStatus[exerciseId] = false;
+        saveLearningState();
+        renderCognitiveProgression();
+    }
+    renderExerciseLearningUI(exerciseId);
+    return state;
+}
+
+function getHints(exerciseId) {
+    return normalizeExercise(exerciseId).hints || [];
+}
+
+function revealNextHint(exerciseId) {
+    const state = getLearningState(exerciseId);
+    const hints = getHints(exerciseId);
+    if (!hints.length || state.completed) return null;
+    const nextIndex = hints.findIndex((_, index) => !state.revealedHints.includes(index));
+    if (nextIndex === -1) return null;
+    state.revealedHints.push(nextIndex);
+    state.revealedHints.sort((a,b) => a-b);
+    state.hintsUsed = state.revealedHints.length;
+    saveLearningState();
+    renderExerciseLearningUI(exerciseId);
+    return { index: nextIndex, text: hints[nextIndex] };
+}
+
+function renderExerciseLearningUI(exerciseId) {
+    const state = getLearningState(exerciseId);
+    const hints = getHints(exerciseId);
+    const host = document.querySelector(`[data-learning-controls=\"${exerciseId}\"]`);
+    if (!host) return;
+
+    const revealed = state.revealedHints.map(index => hints[index]).filter(Boolean);
+    const feedback = state.completed
+        ? '✓ Ejercicio resuelto correctamente.'
+        : state.solutionViewed
+            ? 'ℹ Solución revisada. Ver la solución no cuenta como respuesta correcta.'
+            : state.attempts > 0
+                ? '❌ Todavía no. Revisa tu respuesta y vuelve a intentarlo.'
+                : 'Responde el reto.';
+
+    host.innerHTML = '';
+    const status = document.createElement('div');
+    status.className = 'learning-status';
+    status.setAttribute('aria-live', 'polite');
+    status.innerHTML = `<strong>${feedback}</strong><br>Intentos: ${state.attempts} · Pistas utilizadas: ${state.hintsUsed}`;
+    host.appendChild(status);
+
+    if (state.completed) renderAnalystThinking(exerciseId, host);
+    if (state.attempts > 0) {
+        renderAnalyticalChain(exerciseId, host);
+        renderQualitativeRubric(exerciseId, host);
+    }
+
+    if (revealed.length) {
+        const hintsBox = document.createElement('div');
+        hintsBox.className = 'hints-box';
+        hintsBox.innerHTML = revealed.map((hint, i) => `<p><strong>💡 Pista ${state.revealedHints[i] + 1}:</strong> ${hint}</p>`).join('');
+        host.appendChild(hintsBox);
+    }
+
+    if (!state.completed && hints.length && state.revealedHints.length < hints.length) {
+        const hintBtn = document.createElement('button');
+        hintBtn.className = 'action-btn outline learning-btn';
+        hintBtn.type = 'button';
+        hintBtn.textContent = `💡 Ver pista ${state.revealedHints.length + 1}`;
+        hintBtn.addEventListener('click', () => revealNextHint(exerciseId));
+        host.appendChild(hintBtn);
+    }
+
+    if (!state.completed && state.attempts > 0 && state.revealedHints.length >= hints.length) {
+        const solutionBtn = document.createElement('button');
+        solutionBtn.className = 'action-btn outline learning-btn';
+        solutionBtn.type = 'button';
+        solutionBtn.textContent = hints.length ? 'Ver solución paso a paso' : (getSolutionId(exerciseId) ? 'Revisar solución' : 'Revisar criterios de solución');
+        solutionBtn.addEventListener('click', () => revealExerciseSolution(exerciseId));
+        host.appendChild(solutionBtn);
+    }
+
+    if (!state.completed && state.solutionViewed && isQualitativeExercise(exerciseId)) {
+        const solvedBtn = document.createElement('button');
+        solvedBtn.className = 'action-btn learning-btn';
+        solvedBtn.type = 'button';
+        solvedBtn.textContent = 'Marcar como resuelto';
+        solvedBtn.addEventListener('click', () => selfAssessQualitative(exerciseId));
+        host.appendChild(solvedBtn);
+    }
+}
+
+function revealExerciseSolution(exerciseId) {
+    const solutionId = getSolutionId(exerciseId);
+    if (solutionId) {
+        revealSolution(solutionId, exerciseId);
+    } else {
+        // L8 no tiene un bloque de solución único: la propia sección de autoevaluación
+        // funciona como criterios de revisión. Registrar esta revisión no equivale a resolver.
+        const state = getLearningState(exerciseId);
+        state.solutionViewed = true;
+        saveLearningState();
+    }
+    renderExerciseLearningUI(exerciseId);
+}
+
+function getSolutionId(exerciseId) {
+    return ({
+        'l1-e1': 'sol-l1', 'l1-e2': 'sol-l1-reto', 'l2-e1': 'sol-l2-p',
+        'l2-e2': 'sol-l2-r', 'l3-e1': 'sol-l3', 'l4-e1': 'sol-l4',
+        'l5-e1': 'sol-l5', 'l6-e1': 'sol-l6', 'l7-e1': 'sol-l7'
+    })[exerciseId] || null;
+}
+
+function isQualitativeExercise(exerciseId) {
+    return ['l1-e2', 'l2-e2', 'l3-e1', 'l4-e1', 'l5-e1', 'l6-e1', 'l7-e1', 'l8-e1'].includes(exerciseId);
+}
+
+function selfAssessQualitative(exerciseId) {
+    // La autoevaluación cualitativa no inventa una validación automática ni crea un intento nuevo.
+    // Solo permite cerrar el ejercicio después de que el alumno revisó la solución.
+    const state = getLearningState(exerciseId);
+    if (state.attempts < 1 || (!state.solutionViewed && exerciseId !== 'l8-e1')) return;
+    markExerciseDone(exerciseId);
+}
+
+function registerQualitativeAttempt(exerciseId) {
+    const textareaSelectors = {
+        'l5-e1': '#l5 textarea',
+        'l6-e1': '#l6 textarea',
+        'l7-e1': '#l7 textarea'
+    };
+    const textInput = textareaSelectors[exerciseId] ? document.querySelector(textareaSelectors[exerciseId]) : null;
+    const answer = textInput ? textInput.value.trim() : '';
+    if (!answer) return { ok: false, state: getLearningState(exerciseId) };
+    const state = recordAttempt(exerciseId, false, answer);
+    renderExerciseLearningUI(exerciseId);
+    return { ok: true, state };
+}
+
+// L1 Práctica
+function checkL1() {
+    const exerciseId = 'l1-e1';
+    const m = parseFloat(document.getElementById('l1-meta').value);
+    const e = parseFloat(document.getElementById('l1-eco').value);
+    const a = parseFloat(document.getElementById('l1-app').value);
+    const w = parseFloat(document.getElementById('l1-wa').value);
+    const c = parseFloat(document.getElementById('l1-cc').value);
+    const fb = document.getElementById('feedback-l1');
+
+    const correct = isCorrect(m, 9000000) && isCorrect(e, 4500000) && isCorrect(a, 2700000) &&
+        isCorrect(w, 900000) && isCorrect(c, 900000);
+    const state = recordAttempt(exerciseId, correct, { m, e, a, w, c });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">¡Correctos! Calculaste las cifras exactas. Revisa el desglose original completo.</div>';
+        markExerciseDone('l1-e1');
+        revealSolution('sol-l1', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { m, e, a, w, c }, fb);
+    }
+}
+
+// L1 Reto
+function checkL1Reto() {
+    const exerciseId = 'l1-e2';
+    const e = parseFloat(document.getElementById('l1-reto-enero').value);
+    const n = parseFloat(document.getElementById('l1-reto-nov').value);
+    const fb = document.getElementById('feedback-l1-reto');
+
+    const correct = isCorrect(e, 8400000) && isCorrect(n, 14400000);
+    const state = recordAttempt(exerciseId, correct, { e, n });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">¡Correcto! Respetaste el peso histórico de cada mes usando cifras exactas.</div>';
+        markExerciseDone('l1-e2');
+        revealSolution('sol-l1-reto', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { e, n }, fb);
+    }
+}
+
+// L2 Práctica
+function checkL2Practica() {
+    const exerciseId = 'l2-e1';
+    const c = parseFloat(document.getElementById('l2-p-cump').value);
+    const t = parseFloat(document.getElementById('l2-p-tiempo').value);
+    const p = parseFloat(document.getElementById('l2-p-pacing').value);
+    const r = parseFloat(document.getElementById('l2-p-run').value);
+    const f = parseFloat(document.getElementById('l2-p-fore').value);
+    const tr = parseFloat(document.getElementById('l2-p-target').value);
+    const fb = document.getElementById('feedback-l2-p');
+
+    const correct = isCorrect(c, 40) && isCorrect(t, 50) && isCorrect(p, -10) &&
+        (isCorrect(r, 266666.67, 100) || isCorrect(r, 266667, 100)) &&
+        isCorrect(f, 8000000, 10) && isCorrect(tr, 400000);
+    const state = recordAttempt(exerciseId, correct, { c, t, p, r, f, tr });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">Bien hecho calculando con las cifras completas. Revisa la solución detallada abajo.</div>';
+        markExerciseDone('l2-e1');
+        revealSolution('sol-l2-p', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { c, t, p, r, f, tr }, fb);
+    }
+}
+
+// L2 Reto
+function checkL2Reto() {
+    const exerciseId = 'l2-e2';
+    const c = parseFloat(document.getElementById('l2-r-cump').value);
+    const tr = parseFloat(document.getElementById('l2-r-target').value);
+    const fb = document.getElementById('feedback-l2-r');
+
+    const correct = isCorrect(c, 54.7, 0.5) && isCorrect(tr, 680000, 10);
+    const state = recordAttempt(exerciseId, correct, { c, tr });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">¡Cálculos precisos! Lee el análisis completo a continuación.</div>';
+        markExerciseDone('l2-e2');
+        revealSolution('sol-l2-r', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { c, tr }, fb);
+    }
+}
+
+// L3 Reto
+function checkL3Reto() {
+    const exerciseId = 'l3-e1';
+    const va = parseFloat(document.getElementById('l3-va').value);
+    const vb = parseFloat(document.getElementById('l3-vb').value);
+    const ra = parseFloat(document.getElementById('l3-rpsa').value);
+    const rb = parseFloat(document.getElementById('l3-rpsb').value);
+    const fb = document.getElementById('feedback-l3');
+
+    const correct = isCorrect(va, 9000000) && isCorrect(vb, 8379000) && isCorrect(ra, 45) && isCorrect(rb, 39.9, 0.5);
+    const state = recordAttempt(exerciseId, correct, { va, vb, ra, rb });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">¡Correcto! Lee la interpretación final.</div>';
+        markExerciseDone('l3-e1');
+        revealSolution('sol-l3', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { va, vb, ra, rb }, fb);
+    }
+}
+
+// L4 Reto
+function checkL4() {
+    const exerciseId = 'l4-e1';
+    const e_rps = parseFloat(document.getElementById('l4-em-rps').value);
+    const fb = document.getElementById('feedback-l4');
+
+    const correct = isCorrect(e_rps, 200);
+    const state = recordAttempt(exerciseId, correct, { e_rps });
+    if (correct) {
+        fb.innerHTML = '<div class="success-box">¡Cálculo correcto! Compara tus respuestas cualitativas.</div>';
+        markExerciseDone('l4-e1');
+        revealSolution('sol-l4', exerciseId);
+    } else {
+        diagnoseAndRenderFeedback(exerciseId, { e_rps }, fb);
+    }
+}
+
+// Ejercicios cualitativos: no evaluamos lenguaje natural automáticamente.
+// Registrar respuesta crea un intento fallido/pendiente; la solución y la autoevaluación quedan separadas.
+function checkQualitative(exerciseId, solutionId) {
+    const result = registerQualitativeAttempt(exerciseId);
+    const fb = document.querySelector(`#${solutionId.replace('sol-', 'feedback-')}`);
+    if (!result.ok) {
+        if (fb) fb.innerHTML = '<div class=\"error-box\">Escribe primero tu respuesta y vuelve a intentarlo.</div>';
+        return;
+    }
+    if (fb) {
+        const diagnostic = { type: 'unknown', confidence: 'low' };
+        const feedback = 'La respuesta libre no se interpreta automáticamente. Usa los criterios explícitos para revisar si identificaste el cambio, la evidencia, el driver, la hipótesis y la medición que correspondan a este ejercicio.';
+        recordErrorDiagnosis(exerciseId, diagnostic, feedback);
+        fb.innerHTML = `<div class=\"error-box\"><strong>❌ Autoevaluación pendiente.</strong><br>${feedback}</div>`;
+        fb.setAttribute('aria-live', 'polite');
+    }
+}
+
+function checkL5() { checkQualitative('l5-e1', 'sol-l5'); }
+function checkL6() { checkQualitative('l6-e1', 'sol-l6'); }
+function checkL7() { checkQualitative('l7-e1', 'sol-l7'); }
+function checkL8() {
+    const state = getLearningState('l8-e1');
+    const textareas = document.querySelectorAll('#l8 textarea');
+    const answer = Array.from(textareas).map(t => t.value.trim()).filter(Boolean).join('\n');
+    if (!answer) return;
+    recordAttempt('l8-e1', false, answer);
+    renderExerciseLearningUI('l8-e1');
+}
+
+function initializeLearningUI() {
+    const exerciseContainers = {
+        'l1-e1':'feedback-l1', 'l1-e2':'feedback-l1-reto', 'l2-e1':'feedback-l2-p',
+        'l2-e2':'feedback-l2-r', 'l3-e1':'feedback-l3', 'l4-e1':'feedback-l4',
+        'l5-e1':'sol-l5', 'l6-e1':'sol-l6', 'l7-e1':'sol-l7', 'l8-e1':null
+    };
+    Object.entries(exerciseContainers).forEach(([exerciseId, anchorId]) => {
+        const anchor = anchorId ? document.getElementById(anchorId) : document.getElementById('l8');
+        if (!anchor) return;
+        const host = document.createElement('div');
+        host.className = 'learning-controls';
+        host.dataset.learningControls = exerciseId;
+        if (anchorId) anchor.parentNode.insertBefore(host, anchor);
+        else anchor.appendChild(host);
+        const savedState = getLearningState(exerciseId);
+        const savedSolutionId = getSolutionId(exerciseId);
+        if (savedState.solutionViewed && savedSolutionId) {
+            const solutionEl = document.getElementById(savedSolutionId);
+            if (solutionEl) solutionEl.classList.add('show');
+        }
+        renderExerciseLearningUI(exerciseId);
+    });
+
+    // Las acciones originales de ejercicios cualitativos pasan a registrar respuesta, no a revelar solución.
+    const qualitativeButtons = {
+        'l1-e2': ['l1-reto-enero'], 'l2-e2': ['l2-r-cump'], 'l3-e1': ['l3-va'],
+        'l4-e1': ['l4-em-rps']
+    };
+    // Estos cuatro siguen teniendo validación numérica, por lo que no se modifican.
+    void qualitativeButtons;
+}
+
+window.addEventListener('beforeunload', saveLearningState);
+
+// Inicializa el estado visual al cargar
+updateUI();
+initializeLearningUI();
+loadCaseState(caseLearningState);
+renderCaseLab();
+renderReviewPanel();
+renderDashboard();
+restoreLastView();
+
+// API interna de evidencia expuesta solo para tests/regresión; no crea un motor paralelo.
+globalThis.__fase5 = { concepts, EVIDENCE_STATES, EVIDENCE_STATE_LABELS, getExerciseConcepts, getConceptDefinition, getConceptEvidence, getEvidenceForLesson, syncConceptEvidence, rebuildConceptEvidence, deriveEvidenceState, getLearningState, recordAttempt, recordErrorDiagnosis, revealNextHint, markSolutionViewed, saveLearningState, loadLearningState, exerciseLearningState };
+globalThis.__fase6 = { ANALYTICAL_STAGES, ANALYTICAL_STAGE_LABELS, ANALYTICAL_CHAIN, analyticalActivityMetadata, ANALYTICAL_RUBRICS, getAnalyticalActivity, getAnalyticalRubric, markAnalyticalStagesPracticed, renderAnalyticalChain, renderQualitativeRubric, renderAnalystThinking, getLearningState, recordAttempt };
+globalThis.__fase7 = { ANALYTICAL_CASES, getCase, getCaseState, evaluateCaseComponent, recordCaseAttempt, revealCaseHint, caseEvidence, sanitizeCaseState, renderCaseLab };
+globalThis.__fase8 = { REVIEW_RULES, REVIEW_PRIORITIES, REVIEW_PRIORITY_ORDER, generateReviewPlan, classifyReviewPriority, sanitizeReviewState, getReviewState:()=>reviewLearningState, deferReview, completeReview, startReview, renderReviewPanel };
+globalThis.__fase10 = { openWarningModal, closeModal, forceNextLesson, navigate, updateUI };
+globalThis.__fase9 = { DASHBOARD_STAGE_ORDER, DASHBOARD_STAGE_LABELS, getDashboardData, dashboardNextStep, renderDashboard, openDashboard, closeDashboard, dashboardConceptName };
+globalThis.__fase12 = { FINAL_ASSESSMENT, getFinalAssessmentCriteria, evaluateFinalAssessment, startFinalAssessment, completeFinalAssessment, sanitizeFinalAssessmentState, getFinalAssessmentState:()=>finalAssessmentState, getLearningState, getCaseState, buildPersistableState };
+
+globalThis.__fase11 = { PERSISTENCE_SCHEMA_VERSION, PROGRESS_STORAGE_KEY, migratePersistedState, validatePersistedState, sanitizeNavigationState, saveLearningState, loadLearningState, exportLearningProgress, importLearningProgressFromText, resetLearningProgress, getPersistenceState:()=>persistenceState, getNavigationState:()=>navigationState, getPersistenceMetrics:()=>persistenceMetrics, buildPersistableState };
+
+// Diagnóstico disponible para pruebas de desarrollo, sin modificar el flujo del alumno.
+const pedagogicalModelValidation = validatePedagogicalModel();
+if (!pedagogicalModelValidation.ok) {
+    console.warn('Modelo pedagógico Fase 1 incompleto:', pedagogicalModelValidation);
+}

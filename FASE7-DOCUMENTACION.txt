@@ -1,0 +1,89 @@
+FASE 7 — LABORATORIO DE CASOS ANALÍTICOS
+
+Estado: IMPLEMENTADA -> PROBADA EN LÓGICA/REGRESIÓN -> DOCUMENTADA -> DETENIDA
+
+1. Archivos modificados
+- index.html
+- script.js
+- styles.css
+
+2. Archivos creados
+- tests/test_fase7.js
+- FASE7-DOCUMENTACION.txt
+
+3. Archivos eliminados
+- Ninguno.
+
+4. Funcionalidades implementadas
+- Laboratorio contextual accesible desde la navegación, sin convertirlo en una nueva lección ni alterar los 9 nodos pedagógicos existentes.
+- Tres casos progresivos:
+  1) Caso guiado.
+  2) Caso parcialmente guiado.
+  3) Caso abierto.
+- Estructura de caso: contexto -> datos -> pregunta de negocio -> análisis -> hallazgo/diagnóstico -> hipótesis -> recomendación -> medición.
+- Componentes evaluables de manera determinística.
+- Respuestas selectivas, múltiples y cualitativas por criterios explícitos.
+- Pistas específicas que orientan el razonamiento sin entregar la respuesta.
+- Intentos acumulados por caso.
+- Errores conservados por componente sin sobrescribir historial previo.
+- Evidencia por etapa analítica y por componente.
+- Persistencia de casos en la misma clave de progreso existente.
+- Casos conectados con el modelo de evidencia conceptual de Fase 5.
+- Sin scoring global ni mastery.
+
+5. Arquitectura e integración
+- No se creó un segundo motor de ejercicios.
+- Los casos utilizan estructuras y utilidades existentes del curso y una estructura específica de caso integrada en el mismo estado de aprendizaje.
+- La persistencia sigue siendo: cursoAnalista.fase2.progress.v1.
+- La evidencia de casos se incorpora al agregado conceptual existente mediante caseIds y niveles/etapas analíticas.
+- Los casos no se registran artificialmente como ejercicios Fase 1.
+- Se conserva la navegación y los 10 ejercicios originales.
+
+6. Tests ejecutados
+- node --check script.js: PASS.
+- tests/test_fase7.js: PASS.
+  - casos progresivos
+  - niveles guiado/parcial/abierto
+  - evaluación determinística
+  - intentos y evidencia acumulada
+  - integración caso -> evidencia Fase 5
+  - persistencia integrada
+  - compatibilidad y sanitización
+  - regresión Fase 5
+- tests/test_fase6.js: PASS.
+- tests/test_fase5.js: PASS.
+- tests/test_fase4.js: PASS.
+- tests/test_fase3.js: PASS.
+- tests/test_fase2.js: PASS.
+- tests/test_fase1.js: PASS.
+
+7. Validación manual
+Se preparó una validación del recorrido de laboratorio mediante la interfaz real. El navegador Chromium headless del entorno vuelve a terminar en timeout y no produce un DOM utilizable, por lo que la validación manual de navegador NO se marca como aprobada.
+
+El comportamiento equivalente está cubierto por pruebas automatizadas de casos, persistencia, pistas, intentos, evaluación y evidencia.
+
+8. Regresiones
+No se detectaron regresiones en Fases 1-6.
+Se corrigieron dos puntos de compatibilidad durante la integración:
+- el mock de pruebas no tenía setAttribute/querySelectorAll para el nuevo botón/laboratorio; el código productivo quedó defensivo y los tests fueron actualizados.
+- la evidencia de un componente correcto se conserva aunque un intento posterior falle ese mismo componente.
+
+9. Limitaciones deliberadas
+NO se implementó:
+- dashboard
+- repaso inteligente
+- mastery score
+- IA
+- LLM
+- NLP
+- ranking
+- gamificación
+- evaluación final
+- sistema de selección automática de casos
+
+10. Documentación
+Este archivo documenta arquitectura, casos, integración, pruebas, validación y limitaciones de Fase 7.
+
+11. Estado final
+FASE 7 IMPLEMENTADA -> PROBADA EN LÓGICA/REGRESIÓN -> DOCUMENTADA -> DETENIDA.
+NO IMPLEMENTAR FASE 8.

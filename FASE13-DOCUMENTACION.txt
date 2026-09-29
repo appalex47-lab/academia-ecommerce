@@ -1,0 +1,157 @@
+FASE 13 — ACCESIBILIDAD, PERFORMANCE, QA Y ESTABILIZACIÓN FINAL
+
+ESTADO
+Auditoría → correcciones objetivas → tests → regresión → documentación → detenido.
+
+1. ALCANCE
+Esta fase no agrega funcionalidades pedagógicas nuevas. Se centró en auditoría funcional, accesibilidad, responsive, performance, consola, estados extremos, persistencia, seguridad funcional, coherencia pedagógica y QA final.
+
+2. AUDITORÍA INICIAL
+Problemas/riesgos comprobados:
+- La validación visual completa mediante Chromium headless no es reproducible en este entorno: el proceso termina por timeout sin generar DOM.
+- El estado de navegación aceptaba inicialmente cualquier cadena como activeActivityId; no se ejecutaba como HTML, pero no estaba restringido al catálogo de actividades reales.
+- Existían múltiples puntos de renderizado dinámico mediante innerHTML; se verificó que las interpolaciones provienen del catálogo estático y de estados controlados, sin insertar directamente respuestas de usuario como HTML.
+- La suite existente cubría ampliamente la lógica, pero no tenía una prueba transversal de QA estático, performance de persistencia y estados extremos.
+
+3. CORRECCIONES
+- sanitizeNavigationState() ahora restringe activeActivityId a IDs reales de ejercicios/casos.
+- Se añadió tests/test_fase13.js.
+- Se documentó la matriz QA final.
+- No se modificaron las reglas pedagógicas de intentos, evidencia, repaso, casos o evaluación.
+
+4. ACCESIBILIDAD
+Comprobado estáticamente:
+- landmark main y navegación principal.
+- diálogo con role=dialog, aria-modal, aria-labelledby y aria-describedby.
+- estados dinámicos con aria-live/role=status donde corresponde.
+- focus-visible para controles principales.
+- reduced-motion.
+- controles de ejercicios etiquetados mediante labels envolventes o atributos ARIA.
+- IDs HTML sin duplicados.
+- no se detectaron dependencias externas de runtime.
+
+Limitación: no fue posible ejecutar una auditoría interactiva de lector de pantalla/teclado mediante navegador real debido al timeout de Chromium del entorno.
+
+5. RESPONSIVE
+Comprobado estáticamente:
+- múltiples media queries para 768px, 700px, 900px y 620px.
+- navegación, dashboard, casos, formularios y herramientas tienen reglas responsive.
+- no se detectó dependencia de hover como única vía de interacción.
+
+Limitación: no se pudo completar inspección visual interactiva en móvil/tablet/desktop por el mismo problema del navegador headless.
+
+6. PERFORMANCE
+Medición automatizada de persistencia con 1,000 intentos acumulados:
+- payload persistido: 4,531 bytes en el escenario de prueba.
+- una escritura forzada: aproximadamente 1.23 ms en el entorno de prueba.
+- escritura sin cambios: omitida mediante deduplicación.
+- suite completa 1–12: aproximadamente 0.54 s.
+
+La prueba no demuestra rendimiento de todos los dispositivos reales; solo verifica que no aparece un cuello de botella evidente en serialización/persistencia bajo el escenario de estrés utilizado.
+
+7. SEGURIDAD FUNCIONAL
+- Importación de progreso ya valida JSON, versión y estructura.
+- Datos corruptos no se sobrescriben silenciosamente.
+- Navegación importada se sanitiza.
+- activeActivityId quedó restringido a actividades/casos conocidos.
+- No se detectaron interpolaciones directas de respuestas de usuario en innerHTML.
+
+8. CONSOLA / ERRORES
+- node --check script.js: PASS.
+- No se detectaron referencias inexistentes en las pruebas de regresión.
+- Los warnings existentes están asociados a recuperación/persistencia o validación del modelo pedagógico y no se consideraron errores silenciosos.
+- La consola real del navegador no pudo verificarse por el timeout de Chromium.
+
+9. ESTADOS EXTREMOS
+Cubiertos por tests existentes y Fase 13:
+- alumno nuevo.
+- progreso amplio.
+- datos incompletos.
+- schema anterior.
+- schema futuro.
+- JSON corrupto.
+- navegación inválida.
+- historial grande de intentos.
+- recarga/persistencia mediante mocks determinísticos.
+
+10. COHERENCIA PEDAGÓGICA
+La regresión de Fases 1–12 continúa PASS. No se cambiaron arbitrariamente conceptos, niveles cognitivos, intentos, evidencia, casos, repaso ni evaluación.
+
+11. MATRIZ FINAL DE QA
+Área | Estado | Evidencia
+Lecciones | PASS | Regresión Fase 1 + navegación Fase 10
+Ejercicios | PASS | Regresión Fases 1–6 y 12
+Intentos | PASS | Fases 2, 3, 5, 7, 12
+Pistas | PASS | Fases 2, 7, 8, 12
+Feedback | PASS | Fases 3, 10, 12
+Conceptos | PASS | Fase 5 + regresión
+Pensamiento analítico | PASS | Fase 6 + regresión
+Casos | PASS | Fase 7 + regresión
+Repaso | PASS | Fase 8 + integración Fase 12
+Dashboard | PASS | Fase 9 + integración Fase 12
+Persistencia | PASS | Fase 11 + Fase 13, incluyendo estrés y datos inválidos
+Evaluación | PASS | Fase 12 + regresión
+Accesibilidad | LIMITED | Auditoría estática PASS; validación interactiva bloqueada por Chromium
+Responsive | LIMITED | CSS/estructura PASS; validación visual interactiva bloqueada
+Performance | PASS WITH SCOPE | Persistencia y suite medidas; no benchmark multidispositivo
+Consola | LIMITED | Node/tests PASS; consola real de navegador no verificable
+
+12. TESTS
+Suite ejecutada:
+- test_fase1.js
+- test_fase2.js
+- test_fase3.js
+- test_fase4.js
+- test_fase5.js
+- test_fase6.js
+- test_fase7.js
+- test_fase8.js
+- test_fase9.js
+- test_fase10.js
+- test_fase11.js
+- test_fase12.js
+- test_fase13.js
+
+Resultado: 13/13 archivos de test PASS.
+node --check script.js: PASS.
+
+13. TEST FASE 13
+- auditoría estática UX/accesibilidad/responsive: PASS
+- fuente de verdad sin derivados duplicados: PASS
+- migración compatible: PASS
+- protección ante versión futura: PASS
+- performance de persistencia bajo historial amplio: PASS
+- deduplicación de escrituras: PASS
+- sanitización de navegación: PASS
+- actividad válida conservada: PASS
+
+14. E2E MANUAL
+El recorrido completo solicitado por la fase no pudo completarse en navegador real debido a que Chromium headless queda bloqueado durante la carga y termina por timeout sin producir DOM.
+
+No se declara este recorrido como PASS. Las funciones equivalentes sí tienen cobertura determinística en la suite, pero esto no sustituye la validación manual visual/interactiva.
+
+15. LIMITACIONES PENDIENTES
+- Validación interactiva real de teclado/lector de pantalla.
+- Validación visual real en móvil, tablet y desktop.
+- Inspección de consola del navegador durante el flujo completo.
+- Recorrido E2E manual de extremo a extremo.
+
+Estas limitaciones son conocidas y explícitas; no se ocultan como PASS.
+
+16. ARCHIVOS MODIFICADOS
+- script.js
+- index.html
+- styles.css
+
+17. ARCHIVOS CREADOS
+- tests/test_fase13.js
+- FASE13-DOCUMENTACION.txt
+
+18. ARCHIVOS ELIMINADOS
+Ninguno.
+
+19. CONCLUSIÓN
+La lógica y los datos del producto superan la regresión automatizada completa de Fases 1–13 y no presentan un error crítico conocido dentro de las pruebas ejecutables disponibles. Sin embargo, por la limitación del navegador del entorno, el estado final debe considerarse: ESTABILIZADO CON VALIDACIÓN MANUAL PENDIENTE, no validación visual completa.
+
+20. CIERRE
+No se implementa ninguna Fase 14.

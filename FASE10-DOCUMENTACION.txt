@@ -1,0 +1,124 @@
+FASE 10 — UX, NAVEGACIÓN Y EXPERIENCIA DE APRENDIZAJE
+Estado: implementado → probado → regresión validada → documentado → detenido
+
+1. AUDITORÍA UX INICIAL (antes de modificar)
+
+Problemas observados en la aplicación de Fase 9:
+- La barra superior mezclaba navegación de lecciones con tres herramientas de aprendizaje (Laboratorio, Repaso, Mi aprendizaje), dificultando distinguir “moverse por el curso” de “abrir una vista de apoyo”.
+- No existía una orientación persistente que explicara de forma compacta curso → lección → actividad.
+- El avance sobre una lección incompleta dependía de confirm() nativo, que ofrece una experiencia poco integrada y limita control visual/foco/accesibilidad.
+- Los paneles dinámicos tenían estados aria-expanded, pero el foco no se llevaba explícitamente a su contenido al abrirlos.
+- La experiencia móvil necesitaba una composición más explícita de la navegación superior para evitar competencia horizontal entre controles.
+- Los estados de foco del teclado no estaban reforzados de manera global para los controles principales.
+- No había adaptación explícita para prefers-reduced-motion.
+
+2. ARCHIVOS MODIFICADOS
+- index.html
+- script.js
+- styles.css
+
+3. ARCHIVOS CREADOS
+- tests/test_fase10.js
+- FASE10-DOCUMENTACION.txt
+
+4. ARCHIVOS ELIMINADOS
+- Ninguno.
+
+5. MEJORAS IMPLEMENTADAS
+
+Navegación:
+- Separación visual entre navegación de curso y herramientas de aprendizaje.
+- “Laboratorio” pasa a “Casos”, manteniendo su función y haciendo más evidente el propósito.
+- Añadido aria-controls a paneles dinámicos.
+- Añadida orientación persistente con curso, lección actual y cantidad de actividades/cierre.
+- Apertura de Repaso, Casos y Mi aprendizaje mueve el foco al contenido relevante cuando existe soporte DOM.
+- Se conserva la persistencia y la lógica pedagógica de las fases anteriores.
+
+Prevención de pérdida de progreso:
+- Se elimina confirm() nativo del flujo de avance.
+- Se reutiliza el modal existente como diálogo accesible.
+- role=dialog, aria-modal, aria-labelledby y aria-describedby.
+- Mensaje específico según lo que falte.
+- Foco inicial en la acción principal y devolución del foco al elemento anterior al cerrar.
+- Continuar mantiene la semántica previa: permite avanzar y deja la lección incompleta.
+
+Accesibilidad:
+- Etiqueta de navegación principal.
+- aria-label para Anterior/Siguiente y herramientas.
+- aria-expanded/aria-controls conservados para paneles.
+- Barra de orientación aria-live.
+- Estados de foco :focus-visible para botones y campos.
+- Compatibilidad con prefers-reduced-motion.
+- Formulario y feedback existentes conservados.
+
+Responsive:
+- Desktop: navegación distribuida con título central.
+- Tablet: título en una fila propia y herramientas agrupadas.
+- Móvil: herramientas ocupan una fila completa y los botones principales se distribuyen sin depender de hover.
+- La orientación puede desplazarse horizontalmente en pantallas estrechas.
+
+Microcopy:
+- Se reemplaza la etiqueta “Laboratorio” por “Casos” en la navegación para hacer explícita la función.
+- El diálogo de avance comunica qué falta y qué ocurrirá si el alumno continúa.
+- La orientación evita que el alumno tenga que inferir dónde está.
+
+6. LÓGICA PEDAGÓGICA NO MODIFICADA
+- No se modificaron reglas de evidencia.
+- No se modificaron intentos ni evaluación.
+- No se modificaron conceptos.
+- No se modificó la lógica de repaso.
+- No se modificaron los casos.
+- No se añadió IA, predicción, ranking, gamificación, mastery ni evaluación final.
+
+7. TESTS
+
+Fase 10:
+- PASS estructura UX y accesibilidad.
+- PASS diálogo accesible y foco.
+- PASS orientación del alumno.
+- PASS abandono sin confirm nativo.
+- PASS responsive.
+
+Regresión:
+- test_fase1.js PASS
+- test_fase2.js PASS
+- test_fase3.js PASS
+- test_fase4.js PASS
+- test_fase5.js PASS
+- test_fase6.js PASS
+- test_fase7.js PASS
+- test_fase9.js PASS
+- test_fase10.js PASS
+- node --check script.js PASS
+
+8. VALIDACIÓN MANUAL
+
+Se intentó ejecutar el recorrido completo de la aplicación con Chromium headless, incluyendo carga real del HTML/JS. El proceso terminó por timeout (STATUS=124) y produjo 0 bytes de DOM utilizable. Por tanto, la validación visual/manual real no puede declararse aprobada en este entorno.
+
+Se validaron en cambio mediante pruebas determinísticas y revisión estática los recorridos de:
+- inicio/alumno nuevo;
+- navegación anterior/siguiente;
+- apertura de Casos, Repaso y Mi aprendizaje;
+- diálogo de avance incompleto;
+- foco del diálogo;
+- orientación del alumno;
+- responsive mediante reglas CSS explícitas;
+- regresión de funcionalidades de Fases 1–9.
+
+9. REGRESIONES Y CORRECCIONES
+- Se mantuvieron las APIs internas de Fases 5–9.
+- Se mantuvo la misma clave de persistencia.
+- Se verificó que no quedara ningún confirm() en script.js.
+- Se añadieron los helpers de Fase 10 a __fase10 únicamente para pruebas/regresión.
+- No se eliminaron archivos del proyecto.
+
+10. LIMITACIONES
+- No fue posible realizar una inspección visual interactiva real en Chromium debido al timeout del entorno.
+- La validación de responsive es estructural/CSS y no una captura visual en tres dispositivos reales.
+- No se modificó la arquitectura pedagógica porque el prompt exige que esta fase sea principalmente UX.
+
+11. DOCUMENTACIÓN
+Este documento registra la auditoría previa, cambios, archivos, pruebas, validación, regresiones y limitaciones de Fase 10.
+
+AL TERMINAR ESTA FASE, DETENTE.
+NO IMPLEMENTAR FASE 11.

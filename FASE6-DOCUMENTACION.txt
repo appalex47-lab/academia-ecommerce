@@ -1,0 +1,104 @@
+FASE 6 — FORMACIÓN DEL PENSAMIENTO ANALÍTICO
+
+BASE
+- Se trabajó sobre la entrega acumulada de Fase 5.
+- No se creó un segundo motor de ejercicios ni una segunda persistencia.
+- Se conservaron los IDs, validaciones, intentos, pistas, feedback, evidencia y navegación existentes.
+
+ARCHIVOS MODIFICADOS
+- script.js
+- styles.css
+
+ARCHIVOS CREADOS
+- tests/test_fase6.js
+- FASE6-DOCUMENTACION.txt
+
+ARCHIVOS ELIMINADOS
+- Ninguno.
+
+FUNCIONALIDADES IMPLEMENTADAS
+1. Cadena de pensamiento analítico:
+   Dato/observar → cuantificar → comparar → interpretar → segmentar → diagnosticar →
+   formular hipótesis → recomendar → medir.
+2. Cada ejercicio existente puede declarar las etapas analíticas que practica.
+3. La actividad queda integrada con el estado de intentos y con la evidencia de Fase 5.
+4. El bloque PIENSA COMO ANALISTA se amplió para conectar reflexión con la siguiente
+   pregunta analítica, sin convertirse en teoría extensa.
+5. Las actividades cualitativas de L5-L8 incorporan rúbricas explícitas y determinísticas.
+   El alumno marca criterios que considera cumplidos; no se interpreta automáticamente
+   el texto libre.
+6. La evidencia acumulada conserva también las etapas analíticas practicadas y los
+   criterios explícitos marcados.
+7. La persistencia continúa usando la misma clave de Fase 2:
+   cursoAnalista.fase2.progress.v1
+
+MODELO DE RAZONAMIENTO
+- L1: observar/cuantificar y comparación inicial.
+- L2: cuantificar → comparar → interpretar.
+- L3: observar → cuantificar → comparar → interpretar.
+- L4: cuantificar → comparar → interpretar → segmentar.
+- L5: observar → comparar → segmentar → diagnosticar → hipotetizar → medir.
+- L6: observar → cuantificar → segmentar → diagnosticar → hipotetizar → recomendar → medir.
+- L7: cuantificar → comparar → interpretar → segmentar → hipotetizar → medir.
+- L8: recorre la cadena completa como aplicación integradora.
+
+RESPUESTAS CUALITATIVAS
+- No se usa IA, LLM ni NLP.
+- No se infiere significado semántico del texto libre.
+- Las rúbricas son criterios explícitos y visibles para el alumno.
+- Marcar criterios registra evidencia pedagógica, no una calificación.
+
+INTEGRACIÓN CON FASES 1-5
+- Fase 1: reutiliza conceptos, tipos y niveles cognitivos.
+- Fase 2: cada intento, pista y solución continúa formando parte del estado existente.
+- Fase 3: los errores permanecen en errorHistory y alimentan la evidencia.
+- Fase 4: la cadena analítica se muestra dentro de la progresión pedagógica.
+- Fase 5: las etapas analíticas y criterios se agregan a la evidencia por concepto/nivel.
+
+TESTS EJECUTADOS
+- node --check script.js: PASS.
+- test_fase6.js: PASS.
+- test_fase5.js: PASS.
+- test_fase4.js: PASS.
+- test_fase3.js: PASS.
+- test_fase2.js: PASS.
+- test_fase1.js: PASS.
+
+VALIDACIÓN AUTOMATIZADA
+Se comprobaron específicamente:
+- cadena analítica completa;
+- diagnóstico → hipótesis → medición en L5;
+- cadena completa en L8;
+- rúbricas determinísticas;
+- integración de etapas con los intentos;
+- criterios cualitativos conservados sin scoring;
+- persistencia mediante la misma clave;
+- compatibilidad con Fase 5.
+
+VALIDACIÓN MANUAL
+Se preparó un recorrido DOM para la secuencia de aprendizaje. El intento de ejecución
+real mediante Chromium headless del entorno vuelve a terminar por timeout sin producir
+DOM utilizable. Por esa limitación del entorno no se marca una validación manual de
+navegador como aprobada.
+
+REGRESIONES
+- Se detectó durante la prueba que el mock inicial de Fase 6 no tenía todos los métodos
+  DOM requeridos; se corrigió el test, no la aplicación.
+- Las pruebas de Fases 1-5 permanecen verdes.
+
+NO IMPLEMENTADO DELIBERADAMENTE
+- Laboratorio completo de casos.
+- Repaso inteligente.
+- Dashboard completo.
+- IA, LLM y NLP.
+- Mastery score.
+- Ranking y gamificación.
+- Evaluación final.
+- Adaptación automática de dificultad.
+
+DOCUMENTACIÓN
+Este archivo documenta el modelo, integración, pruebas, validación y límites de Fase 6.
+
+ESTADO FINAL
+FASE 6 IMPLEMENTADA → INTEGRADA → PROBADA EN LÓGICA/REGRESIÓN → DOCUMENTADA → DETENIDA.
+NO SE IMPLEMENTÓ FASE 7.
