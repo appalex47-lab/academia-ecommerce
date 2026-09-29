@@ -1,0 +1,119 @@
+FASE 3 — FEEDBACK PEDAGÓGICO Y DIAGNÓSTICO DE ERRORES
+=======================================================
+
+1. ARCHIVOS MODIFICADOS
+- script.js
+- styles.css
+- tests/test_fase1.js (corrección del path de ejecución para que el test sea portable dentro de la entrega)
+
+2. ARCHIVOS CREADOS
+- tests/test_fase3.js
+- FASE3-DOCUMENTACION.txt
+
+3. ARCHIVOS ELIMINADOS
+- Ninguno.
+
+4. FUNCIONALIDADES IMPLEMENTADAS
+- Diagnóstico determinístico básico para ejercicios cuantitativos.
+- Tipos soportados: formula, substitution (estructura preparada), percentage_scale,
+  arithmetic (estructura preparada), unit (estructura preparada), sign (estructura preparada),
+  range, conceptual, invalid y unknown.
+- Fallback unknown para evitar sobrediagnóstico.
+- Historial de errores por ejercicio: intento, tipo, feedback y timestamp.
+- lastErrorType.
+- Feedback contextual según ejercicio/conceptos/tipo de error.
+- Lenguaje prudente: "parece", "revisa", "puede estar"; no se afirma conocer el razonamiento mental.
+- Bloque "PIENSA COMO ANALISTA" después de resolución correcta cuando aplica.
+- Mensajes dinámicos con aria-live="polite".
+- Ejercicios cualitativos: se conserva la autoevaluación existente y no se hace NLP; sus respuestas
+  libres usan diagnóstico "unknown" cuando corresponde.
+
+5. TIPOS DE ERROR IMPLEMENTADOS CON REGLAS ACTIVAS
+- percentage_scale: detección en campos porcentuales explícitos.
+- formula: detecciones concretas definidas por ejercicio cuando existe evidencia suficiente.
+- conceptual: detecciones concretas, por ejemplo confundir RPS con AOV en L3/L4.
+- invalid: vacío/no numérico/no interpretable en campos requeridos por el perfil cuantitativo.
+- range: rangos inequívocos de porcentaje en ejercicios L2.
+- unknown: fallback general sin sobrediagnóstico.
+
+Los tipos substitution, arithmetic, unit y sign forman parte del contrato de diagnóstico y del
+catálogo de feedback, pero no se fuerzan cuando la estructura actual del ejercicio no aporta
+suficiente evidencia para clasificarlos de forma segura.
+
+6. INTEGRACIÓN CON FASE 1
+- Se reutilizan concepts, type, cognitiveLevel y difficulty ya existentes.
+- No se reemplaza lessons ni la estructura de IDs.
+- El diagnóstico usa los conceptos existentes para contextualizar el feedback.
+- analystThinking se añade como capa de aplicación analítica sin alterar el modelo base.
+
+7. INTEGRACIÓN CON FASE 2
+- Se reutiliza recordAttempt(), exerciseLearningState y las pistas existentes.
+- Un error incrementa attempts una sola vez; registrar diagnóstico no crea otro intento.
+- Las pistas siguen siendo independientes de attempts.
+- solutionViewed y solvedCorrectly permanecen separados.
+- Un error produce diagnóstico + feedback + flujo existente de pista/reintento.
+- Una respuesta correcta conserva el flujo existente y añade PIENSA COMO ANALISTA.
+
+8. PERSISTENCIA
+- Se mantiene exclusivamente localStorage con la clave de Fase 2:
+  cursoAnalista.fase2.progress.v1
+- Se añadieron errorHistory y lastErrorType al estado persistido.
+- sanitizeExerciseState() mantiene compatibilidad con estados antiguos sin estos campos.
+- No se creó un segundo sistema de persistencia.
+
+9. TESTS EJECUTADOS
+- tests/test_fase3.js
+- tests/test_fase2.js
+- tests/test_fase1.js
+- node --check script.js
+
+Resultados:
+PASS — clasificación percentage_scale
+PASS — clasificación formula
+PASS — clasificación conceptual
+PASS — clasificación invalid
+PASS — fallback unknown sin sobrediagnóstico
+PASS — historial de errores persistible
+PASS — feedback contextual
+PASS — estructura Fase 2
+PASS — 10 ejercicios conservados
+PASS — persistencia localStorage
+PASS — intentos/pistas/solución separados
+PASS — cualitativos sin evaluación automática
+PASS — UI accesible básica
+PASS — modelo pedagógico
+PASS — 10 ejercicios
+PASS — 9 nodos lesson incluido cierre
+PASS — normalización/compatibilidad legacy
+PASS — validaciones L1-L4
+PASS — rehidratación desde persistencia
+PASS — ejercicios cualitativos iterativos
+PASS — navegación
+
+10. PRUEBA DE NAVEGADOR
+- Chromium está disponible en el entorno, pero la ejecución headless de dump-dom no terminó dentro
+  de 20 segundos y no produjo DOM. Por tanto, NO se declara aprobada una prueba interactiva de navegador.
+- No se detectó una regresión mediante las pruebas automatizadas de JavaScript.
+
+11. REGRESIONES DETECTADAS
+- El test heredado de Fase 1 utilizaba un path absoluto (/mnt/data/script.js), incompatible con
+  la ubicación empaquetada de la entrega.
+
+12. REGRESIONES CORREGIDAS
+- Se hizo el path del test relativo a __dirname para que pueda ejecutarse dentro del paquete.
+- Se corrigió un caso de clasificación de prueba donde un candidato de fórmula coincidía con el
+  resultado correcto; se eliminó esa regla para evitar un diagnóstico falso.
+- Se corrigió el arnés de prueba Fase 3 para simular createElement del DOM.
+
+13. LIMITACIONES CONOCIDAS / PENDIENTES
+- El diagnóstico es determinístico y deliberadamente conservador.
+- No analiza lenguaje natural.
+- No implementa mastery, scoring global, IA, NLP, repaso, dashboard, casos completos,
+  adaptación automática ni evaluación final.
+- No todos los tipos de error pueden determinarse con seguridad con los inputs que actualmente
+  expone cada ejercicio; cuando falta evidencia se usa unknown.
+- La prueba interactiva de navegador queda pendiente por limitación del entorno de ejecución.
+
+14. ESTADO FINAL
+FASE 3 IMPLEMENTADA → PROBADA → VALIDADA EN LÓGICA/REGRESIÓN → DOCUMENTADA → DETENIDA.
+No se realizaron cambios de Fase 4.

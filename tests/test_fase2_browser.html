@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8"><title>Fase 2 tests</title>
+<script src="../script.js"></script>
+<script>
+(async function () {
+  const out = [];
+  const assert = (name, ok, detail='') => out.push((ok ? 'PASS' : 'FAIL') + '|' + name + (detail ? '|' + detail : ''));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  try {
+    localStorage.removeItem('cursoAnalista.fase2.progress.v1');
+    // Primer intento incorrecto.
+    ['l1-meta','l1-eco','l1-app','l1-wa','l1-cc'].forEach(id => document.getElementById(id).value = '1');
+    checkL1(); await sleep(10);
+    let s = getLearningState('l1-e1');
+    assert('incorrect attempt recorded', s.attempts === 1 && s.completed === false && s.firstAttemptCorrect === false);
+    // Pista no cuenta como intento.
+    let host = document.querySelector('[data-learning-controls="l1-e1"]');
+    let hintBtn = host.querySelector('button');
+    hintBtn.click(); await sleep(10);
+    s = getLearningState('l1-e1');
+    assert('hint does not increment attempts', s.attempts === 1 && s.hintsUsed === 1);
+    // Dos pistas adicionales.
+    host.querySelector('button').click(); await sleep(5);
+    host.querySelector('button').click(); await sleep(5);
+    s = getLearningState('l1-e1');
+    assert('three hints progressive', s.hintsUsed === 3 && s.revealedHints.join(',') === '0,1,2');
+    // Segundo intento incorrecto y solución consultada.
+    checkL1(); await sleep(10);
+    s = getLearningState('l1-e1');
+    assert('second incorrect attempt', s.attempts === 2 && s.completed === false && s.firstAttemptCorrect === false);
+    host = document.querySelector('[data-learning-controls="l1-e1"]');
+    const solBtn = Array.from(host.querySelectorAll('button')).find(b => /solución/i.test(b.textContent));
+    assert('solution button appears after hints', !!solBtn);
+    solBtn.click(); await sleep(10);
+    s = getLearningState('l1-e1');
+    assert('solution viewed is not completion', s.solutionViewed === true && s.completed === false && s.solvedCorrectly === false);
+    // Tercer intento correcto.
+    document.getElementById('l1-meta').value = '9000000';
+    document.getElementById('l1-eco').value = '4500000';
+    document.getElementById('l1-app').value = '2700000';
+    document.getElementById('l1-wa').value = '900000';
+    document.getElementById('l1-cc').value = '900000';
+    checkL1(); await sleep(10);
+    s = getLearningState('l1-e1');
+    assert('third correct completes', s.attempts === 3 && s.completed === true && s.solvedCorrectly === true && s.firstAttemptCorrect === false);
+    // Persistencia efectiva.
+    const saved = JSON.parse(localStorage.getItem('cursoAnalista.fase2.progress.v1'));
+    assert('state persisted', saved.exercises['l1-e1'].attempts === 3 && saved.exercises['l1-e1'].completed === true);
+    // Sin pistas no rompe el motor.
+    const noHint = normalizeExercise({id:'legacy-no-hints'});
+    assert('exercise without hints is supported', Array.isArray(noHint.hints) && noHint.hints.length === 0);
+    // Cualitativo: registra intento pero no evalúa lenguaje natural.
+    document.querySelector('#l5 textarea').value = 'Mi diagnóstico de prueba';
+    checkL5(); await sleep(10);
+    s = getLearningState('l5-e1');
+    assert('qualitative attempt recorded without auto-evaluation', s.attempts === 1 && s.completed === false && s.solvedCorrectly === false);
+    out.push('DONE');
+  } catch (e) { out.push('FAIL|exception|' + e.message); }
+  document.body.innerHTML = '<pre id="results">' + out.join('\n') + '</pre>';
+})();
+</script>

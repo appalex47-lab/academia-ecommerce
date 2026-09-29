@@ -1,0 +1,318 @@
+:root {
+   --primary: #2563eb;
+   --primary-dark: #1d4ed8;
+   --text-main: #1e293b;
+   --text-muted: #64748b;
+   --bg-main: #ffffff;
+   --bg-alt: #f8fafc;
+   --border: #e2e8f0;
+   --success-bg: #dcfce7;
+   --success-text: #166534;
+   --error-bg: #fee2e2;
+   --error-text: #991b1b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header & Navigation */
+.top-nav {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   background-color: var(--bg-alt);
+   padding: 15px 30px;
+   border-bottom: 1px solid var(--border);
+   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+   z-index: 10;
+}
+
+#lesson-title {
+   font-size: 1.2rem;
+   color: var(--primary);
+   text-align: center;
+   flex-grow: 1;
+}
+.nav-btn {
+  background-color: white;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.nav-btn:hover:not(:disabled) { background-color: var(--border); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Reading Progress Bar */
+.reading-progress-container {
+   height: 4px;
+   background-color: #e2e8f0;
+   width: 100%;
+   z-index: 10;
+}
+#reading-progress-bar {
+   height: 100%;
+   width: 0%;
+   background-color: var(--primary);
+   transition: width 0.1s ease;
+}
+
+/* Stats Panel */
+.stats-panel {
+   display: flex;
+   justify-content: center;
+   gap: 30px;
+   padding: 10px;
+   background-color: white;
+   border-bottom: 1px solid var(--border);
+   font-size: 0.9rem;
+   color: var(--text-muted);
+}
+.stats-panel strong { color: var(--primary-dark); }
+
+/* Main Content */
+main {
+  flex-grow: 1;
+  padding: 40px 20px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background-color: var(--bg-main);
+}
+.content-container { max-width: 800px; margin: 0 auto; padding-bottom: 60px; }
+.lesson { display: none; animation: fadeIn 0.3s ease-in-out; }
+.lesson.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform:
+translateY(0); } }
+
+/* Typography & General */
+h2 { font-size: 2rem; margin-bottom: 10px; color: var(--text-main); }
+h3 { font-size: 1.2rem; margin-top: 30px; margin-bottom: 15px; color: var(--primary);
+border-bottom: 2px solid var(--border); padding-bottom: 5px; }
+p, ul, ol, table { margin-bottom: 15px; line-height: 1.6; }
+ul, ol { margin-left: 20px; }
+blockquote { background-color: var(--bg-alt); border-left: 4px solid var(--primary); padding: 15px;
+margin: 20px 0; font-style: italic; }
+
+table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95rem; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background-color: var(--sidebar-bg); font-weight: 600; }
+
+/* Exercises */
+.exercise-box { background-color: var(--bg-alt); border: 1px solid var(--border); border-radius:
+8px; padding: 20px; margin: 30px 0; }
+.exercise-box h4 { margin-bottom: 15px; }
+.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:
+15px; margin-bottom: 20px; }
+.input-grid label { display: flex; flex-direction: column; font-size: 0.9rem; font-weight: 600; color:
+var(--text-muted); }
+.input-grid input { margin-top: 5px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;
+font-size: 1rem; }
+.input-grid input:focus { outline: none; border-color: var(--primary); }
+.text-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px;
+font-family: inherit; margin-bottom: 15px; resize: vertical; }
+
+.action-btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px;
+border-radius: 5px; cursor: pointer; font-size: 1rem; }
+.action-btn:hover { background-color: var(--primary-dark); }
+.action-btn.outline { background-color: transparent; border: 1px solid var(--primary); color:
+var(--primary); }
+.action-btn.outline:hover { background-color: #f1f5f9; }
+
+/* Feedbacks & Hidden Solutions */
+.feedback { margin-top: 15px; }
+.success-box, .error-box { padding: 15px; border-radius: 6px; line-height: 1.5; font-size: 0.95rem;
+margin-bottom: 15px; }
+.success-box { background-color: var(--success-bg); color: var(--success-text); border: 1px solid
+#bbf7d0; }
+.error-box { background-color: var(--error-bg); color: var(--error-text); border: 1px solid #fecaca; }
+
+.hidden-solution { display: none; background-color: #f0fdf4; border-left: 4px solid #166534;
+padding: 15px; margin-top: 15px; animation: fadeIn 0.3s; }
+.hidden-solution.show { display: block; }
+.hidden-solution h4 { color: #166534; }
+
+/* Modal */
+.modal-overlay {
+   display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+   background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-box {
+   background: white; padding: 30px; border-radius: 8px; max-width: 400px;
+   text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.modal-box h3 { margin-top: 0; border: none; color: var(--text-main); }
+.modal-actions { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
+
+@media (max-width: 768px) {
+  .top-nav { flex-direction: column; gap: 10px; text-align: center; }
+  .stats-panel { flex-direction: column; gap: 5px; align-items: center; }
+}
+
+
+/* FASE 2 — feedback, pistas y estado de aprendizaje */
+.learning-controls {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-main);
+}
+.learning-status {
+  line-height: 1.5;
+}
+.hints-box {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-left: 4px solid var(--primary);
+  background: #eff6ff;
+}
+.hints-box p { margin: 6px 0; }
+.learning-btn { margin: 6px 8px 0 0; }
+
+
+/* FASE 3 — feedback pedagógico y pensamiento analítico */
+.analyst-thinking {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--primary);
+  background: var(--bg-alt);
+  border-radius: 8px;
+}
+.analyst-thinking strong { display: block; margin-bottom: 6px; }
+.analyst-thinking p { margin: 5px 0; }
+.learning-status { border-radius: 6px; }
+
+
+/* FASE 4 — ruta contextual de progresión cognitiva */
+.cognitive-progression {
+  margin: 14px 0 22px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-alt);
+}
+.cognitive-progression-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.cognitive-progression-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cognitive-progression-note {
+  font-size: .78rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+.cognitive-stage-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0 8px;
+}
+.cognitive-stage {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-main);
+  color: var(--text-muted);
+  font-size: .82rem;
+}
+.cognitive-stage.covered-here { border-style: solid; }
+.cognitive-stage.current {
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, .10);
+}
+.cognitive-stage.completed {
+  border-color: #86efac;
+  color: var(--success-text);
+  font-weight: 700;
+}
+.cognitive-stage.practiced {
+  border-color: #93c5fd;
+  color: var(--text-main);
+}
+.cognitive-progression-detail,
+.cognitive-transition {
+  margin: 7px 0 0;
+  line-height: 1.5;
+  font-size: .9rem;
+}
+.cognitive-transition {
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 768px) {
+  .cognitive-progression-head { flex-direction: column; }
+  .cognitive-progression-note { text-align: left; }
+}
+
+/* FASE 5 — evidencia de aprendizaje por concepto y nivel */
+.concept-evidence {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.concept-evidence-note {
+  display: block;
+  margin-top: 3px;
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+.concept-evidence ul {
+  list-style: none;
+  margin: 9px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.concept-evidence-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg-main);
+}
+.concept-evidence-row span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.concept-evidence-row small { color: var(--text-muted); }
+.evidence-state {
+  font-size: .76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.evidence-not_started { color: var(--text-muted); }
+.evidence-exposed { color: var(--text-main); }
+.evidence-practiced { color: var(--primary); }
+.evidence-demonstrated { color: var(--success-text); }
+.evidence-needs_review { color: var(--warning-text, #92400e); }
+@media (max-width: 768px) {
+  .concept-evidence-row { align-items: flex-start; flex-direction: column; }
+}

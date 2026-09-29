@@ -1,0 +1,90 @@
+FASE 1 — MODELO PEDAGÓGICO Y ESTRUCTURA DE APRENDIZAJE
+Curso Autodidacta de Analista
+
+ALCANCE
+Se implementó exclusivamente la Fase 1 solicitada: extensión del modelo de ejercicios para soportar conceptos, nivel cognitivo, dificultad, tipo y metadata futura, manteniendo compatibilidad con el motor existente.
+
+FUENTES DE IMPLEMENTACIÓN
+La aplicación original fue entregada como exportaciones PDF de HTML, CSS y JavaScript. El script.js e index.html de esta entrega se reconstruyeron a partir de esos archivos, preservando el comportamiento existente y aplicando únicamente los cambios de Fase 1.
+
+ANTES
+- lessons contenía IDs de ejercicios.
+- exerciseStatus guardaba únicamente booleanos.
+- Las reglas de validación estaban dentro de checkL1(), checkL1Reto(), etc.
+- No existía un catálogo pedagógico central.
+- No existía una normalización de ejercicios legacy.
+
+DESPUÉS
+- Se mantienen intactos los IDs de lessons y ejercicios.
+- Se agregaron COGNITIVE_LEVELS y EXERCISE_TYPES.
+- Se agregó un catálogo central concepts.
+- Se agregó exerciseMetadata para los 10 ejercicios actuales.
+- Se agregó normalizeExercise(exercise), compatible con IDs legacy y objetos parciales.
+- Se agregó getExercise() y getLessonExercises() para acceder al modelo enriquecido sin cambiar el contrato actual.
+- Se prepararon campos opcionales: hints, analystThinking, rubric, errorPatterns y tags.
+- Se agregó un ejercicio técnico aislado de prueba de la nueva estructura; no entra en el flujo del alumno.
+- Se agregó validatePedagogicalModel() como comprobación estructural de desarrollo.
+
+CLASIFICACIÓN ACTUAL
+L1: meta anual, estacionalidad, canales — cálculo.
+L2: pacing, run rate, forecast, target — cálculo / interpretación.
+L3: ventas, tráfico, pedidos, CR, AOV, RPS — cálculo / interpretación.
+L4: tráfico, canales, adquisición, CR, AOV, RPS — interpretación.
+L5: ventas, tráfico, CR, AOV, diagnóstico, hipótesis, evidencia — diagnóstico.
+L6: funnel, checkout, purchase, CR, diagnóstico, hipótesis, evidencia — diagnóstico.
+L7: retención, cohortes, LTV, pedidos, ventas, AOV — interpretación.
+L8: ventas, tráfico, CR, AOV, canales, funnel, retención, diagnóstico, hipótesis, evidencia — caso.
+
+COMPATIBILIDAD
+- Los ejercicios actuales continúan usando sus IDs originales.
+- Las funciones de validación existentes conservan sus cifras y tolerancias.
+- lessonStatus y exerciseStatus conservan su contrato actual.
+- La navegación anterior/siguiente conserva su lógica.
+- Los ejercicios cualitativos L5-L8 conservan su comportamiento actual.
+- Un ejercicio legacy sin metadata puede pasar por normalizeExercise() y recibe defaults null/[] sin romper el motor.
+
+CAMBIO UI MÍNIMO
+Se corrigió únicamente el contador estático inicial del HTML de 0/7 a 0/10, porque el curso contiene 10 ejercicios y el panel dinámico ya calcula ese total.
+No se rediseñó la interfaz ni se modificó la navegación, modal, dashboard o experiencia visual.
+
+NO IMPLEMENTADO — CORRECTAMENTE FUERA DE FASE
+- pistas progresivas
+- motor de errores
+- rúbricas automáticas
+- dominio/mastery
+- repaso inteligente
+- dashboard
+- laboratorio de casos
+- evaluación final
+- nueva navegación
+- rediseño visual
+- persistencia nueva
+
+PRUEBAS EJECUTADAS
+1. Sintaxis JavaScript: PASS (node --check).
+2. Modelo pedagógico: PASS.
+3. 10 ejercicios existentes registrados: PASS.
+4. Normalización de ejercicio legacy: PASS.
+5. Metadata L1/L3/L8: PASS.
+6. Validación L1: PASS.
+7. Validación L1 reto: PASS.
+8. Validación L2 práctica: PASS.
+9. Validación L2 reto: PASS.
+10. Validación L3: PASS.
+11. Validación L4: PASS.
+12. Ejercicios cualitativos L5-L8: PASS.
+13. Navegación: PASS.
+14. CSS: sin cambios respecto de la fuente extraída.
+15. Persistencia: no existe una capa de persistencia previa en el código auditado; no se añadió ninguna en esta fase.
+
+REGRESIONES ENCONTRADAS
+Ninguna durante las pruebas ejecutadas.
+
+REGRESIONES CORREGIDAS
+Ninguna funcional. El único ajuste adicional fue corregir el texto estático 0/7 a 0/10 para que coincida con el número real de ejercicios.
+
+PENDIENTES PARA FASES POSTERIORES
+El nuevo modelo queda preparado para intentos, errores, mastery, repaso y casos, pero esas funcionalidades no fueron implementadas.
+
+ESTADO
+FASE 1 IMPLEMENTADA Y DETENIDA.
