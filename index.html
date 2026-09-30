@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso Autodidacta de Analista</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navegación Superior -->
+  <header class="top-nav" aria-label="Navegación principal del curso">
+     <button id="prev-btn" class="nav-btn" type="button" onclick="navigate(-1)" aria-label="Ir a la lección anterior">&#8592; Anterior</button>
+     <div class="top-nav-title">
+       <span class="course-label">Curso Autodidacta de Analista</span>
+       <h1 id="lesson-title">Módulo 0: Introducción al curso</h1>
+     </div>
+     <div class="nav-tools" aria-label="Herramientas de aprendizaje">
+       <button id="lab-btn" class="nav-btn" type="button" onclick="openCaseLab()" aria-expanded="false" aria-controls="case-lab" title="Practica con situaciones de negocio completas">Casos</button>
+       <button id="review-btn" class="nav-btn" type="button" onclick="openReviewPanel()" aria-expanded="false" aria-controls="review-panel" title="Refuerza lo que más lo necesita según tu actividad">Repaso</button>
+       <button id="dashboard-btn" class="nav-btn" type="button" onclick="openDashboard()" aria-expanded="false" aria-controls="dashboard-panel" title="Consulta tu progreso y tu siguiente paso">Mi aprendizaje</button>
+       <button id="assessment-btn" class="nav-btn" type="button" onclick="openFinalAssessment()" aria-expanded="false" aria-controls="final-assessment-panel" title="Integra todo el recorrido del curso">Evaluación final</button>
+     </div>
+     <button id="next-btn" class="nav-btn nav-next" type="button" onclick="navigate(1)" aria-label="Ir a la siguiente lección">Siguiente &#8594;</button>
+  </header>
+
+  <div id="orientation-bar" class="orientation-bar" aria-live="polite">
+    <span id="orientation-course">Curso</span><span aria-hidden="true">›</span><strong id="orientation-lesson">Módulo 0</strong><span aria-hidden="true">›</span><span id="orientation-step">Contenido y ejercicios</span>
+  </div>
+
+  <!-- Barra de progreso de lectura -->
+  <div id="persistence-notice" class="persistence-notice" role="status" aria-live="polite" hidden></div>
+
+  <div class="reading-progress-container">
+     <div id="reading-progress-bar"></div>
+  </div>
+
+  <!-- Panel de Estadísticas Generales -->
+
+            📚
+  <div class="stats-panel">
+
+            ✍️
+     <span>     Lectura completada: <strong id="lessons-stat">0% (0/8)</strong></span>
+     <span>     Ejercicios terminados: <strong id="exercises-stat">0% (0/10)</strong></span>
+  </div>
+
+  <!-- Contenido Principal -->
+  <main id="main-content">
+     <div class="content-container">
+        <section id="case-lab" class="case-lab hidden" aria-label="Laboratorio de casos analíticos"></section>
+        <section id="review-panel" class="review-panel hidden" aria-label="Repaso inteligente"></section>
+        <section id="dashboard-panel" class="dashboard-panel hidden" aria-label="Dashboard de aprendizaje"></section>
+        <section id="final-assessment-panel" class="final-assessment-panel hidden" aria-label="Evaluación final integral"></section>
+
+        <!-- MÓDULO 0 -->
+        <div id="l0" class="lesson active">
+           <h2>MÓDULO 0<br>INTRODUCCIÓN AL CURSO</h2>
+           <div class="meta-info">
+              <p><strong>Tema:</strong> Qué vas a aprender y cómo.<br>
+              <strong>Duración estimada:</strong> 5 minutos.<br>
+              <strong>Ejercicios:</strong> ninguno. Esta introducción no tiene preguntas.</p>
+           </div>
+
+           <h3>BIENVENIDO: DE GENERAR REPORTES A PENSAR COMO ANALISTA</h3>
+           <p id="intro-greeting" class="welcome-line">Hola. Cuéntanos cómo te llamas para personalizar el curso (es opcional).</p>
+
+           <div class="profile-box">
+              <h4>Antes de empezar: ¿cómo te llamas?</h4>
+              <p>Usaremos tu nombre en los ejemplos del curso. Por ejemplo: «<span data-learner-name>Manuel</span> es analista y necesita convertir una meta anual en objetivos por mes». Es opcional y se guarda solo en este navegador. Puedes cambiarlo cuando quieras volviendo a este módulo.</p>
+              <label for="learner-name">Tu nombre <input type="text" id="learner-name" maxlength="30" autocomplete="given-name" placeholder="Ej. Manuel"></label>
+              <button class="action-btn" type="button" onclick="saveLearnerName()">Guardar nombre</button>
+              <div id="learner-name-feedback" class="feedback" aria-live="polite"></div>
+           </div>
+
+           <h3>1. ¿QUÉ VAS A APRENDER?</h3>
+           <p>Este no es un curso tradicional para memorizar fórmulas o aprender a usar un software de moda. Vas a aprender a pensar y actuar como un estratega de negocios utilizando datos. Al terminar, sabrás cómo tomar una meta financiera millonaria, desglosarla operativamente, identificar exactamente por qué están cambiando las ventas y proponer soluciones sólidas basadas en evidencia para la dirección comercial.</p>
+
+           <h3>2. ¿CÓMO VAS A APRENDERLO?</h3>
+           <p>Para asegurar que realmente domines los conceptos, cada lección pasará por 5 estados pedagógicos:</p>
+           <ol>
+             <li><strong>Yo te lo explico:</strong> Entenderás la lógica del negocio detrás del número.</li>
+             <li><strong>Yo te lo demuestro:</strong> Verás un caso práctico resuelto.</li>
+             <li><strong>Lo hacemos juntos:</strong> Resolverás ejercicios interactivos con pistas.</li>
+             <li><strong>Lo haces tú:</strong> Te enfrentarás a retos numéricos en solitario.</li>
+             <li><strong>Lo transfieres:</strong> Aplicarás todo en un Proyecto Integrador final.</li>
+           </ol>
+
+           <h3>3. TU PERFIL AL TERMINAR EL CURSO</h3>
+           <p>Tu perfil se transformará. Dejarás de ser un "pica-botones" que solo descarga reportes en Excel y te convertirás en un Analista de Negocios Digitales. Serás el puente clave entre el equipo técnico y los directores comerciales de cualquier empresa de comercio electrónico.</p>
+
+           <h3>4. TU CAJA DE HABILIDADES</h3>
+           <ul>
+             <li><strong>Modelado Comercial:</strong> Traducir metas macro en objetivos diarios por canal (Ecommerce, App, WhatsApp, Call Center).</li>
+             <li><strong>Auditoría de Conversión:</strong> Localizar fallas técnicas y de experiencia de usuario (UX) analizando embudos de compra.</li>
+             <li><strong>Análisis Predictivo Básico:</strong> Proyectar cierres de mes (Forecast) e identificar alertas de ritmo de venta (Pacing).</li>
+             <li><strong>Pensamiento Estructurado:</strong> Pasar del pánico de "las ventas bajaron" a una secuencia lógica (Brecha → Driver → Segmento → Hipótesis).</li>
+             <li><strong>Comunicación Ejecutiva:</strong> Presentar hallazgos separando los hechos duros de las suposiciones o intuiciones.</li>
+             <li><strong>Criterio de Negocio:</strong> Aprender a hacer la pregunta correcta antes de tocar cualquier base de datos.</li>
+           </ul>
+
+           <h3>5. TUS HERRAMIENTAS DE ESTUDIO</h3>
+           <p>En la barra superior tienes cuatro secciones que te acompañan durante todo el curso. Cada una explica qué es cuando la abres.</p>
+           <ul>
+             <li><strong>Casos:</strong> situaciones de negocio completas para practicar con más contexto.</li>
+             <li><strong>Repaso:</strong> te sugiere qué reforzar según tus errores, pistas y práctica.</li>
+             <li><strong>Mi aprendizaje:</strong> tu tablero de progreso y tu siguiente paso.</li>
+             <li><strong>Evaluación final:</strong> integra todo el recorrido cuando termines el curso.</li>
+           </ul>
+           <blockquote><strong>LISTO:</strong> pulsa «Siguiente» para empezar con la Lección 1. No tienes que guardar nada para continuar.</blockquote>
+        </div>
+
+        <!-- LECCIÓN 1 -->
+        <div id="l1" class="lesson">
+           <h2>LECCIÓN 1<br>CONSTRUYENDO UNA META OMNICANAL</h2>
+           <div class="meta-info">
+              <p><strong>Tema:</strong> De una meta anual a una meta operativa por periodo
+y canal.<br>
+              <strong>Nivel:</strong> Inicial.<br>
+              <strong>Duración estimada:</strong> 45–60 minutos.</p>
+           </div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> <span data-learner-name>Manuel</span> es analista en una empresa que vende por cuatro canales. Su director le entrega una meta anual y <span data-learner-name>Manuel</span> necesita convertirla en objetivos por mes y por canal.</p>
+
+         <h3>1. ¿QUÉ VAS A APRENDER?</h3>
+         <p>Al terminar esta lección podrás:</p>
+        <ul>
+           <li>Convertir una meta anual en metas periódicas.</li>
+           <li>Utilizar información histórica para distribuir una meta.</li>
+           <li>Calcular el peso de cada periodo.</li>
+           <li>Distribuir objetivos entre canales.</li>
+           <li>Diferenciar una distribución matemática de una distribución basada en
+comportamiento histórico.</li>
+           <li>Explicar los supuestos utilizados.</li>
+        </ul>
+
+          <h3>2. EL PROBLEMA DE NEGOCIO</h3>
+          <p>Imagina que trabajas como analista para una empresa que vende por cuatro
+canales:</p>
+          <ul>
+            <li>Ecommerce.</li>
+            <li>App.</li>
+            <li>WhatsApp.</li>
+            <li>Call Center.</li>
+          </ul>
+          <p>La dirección comercial establece:<br>«"Este año necesitamos vender $120
+millones."»</p>
+          <p>El director comercial ahora pregunta:<br>«"¿Cuánto deberíamos vender cada
+mes y cuánto debería aportar cada canal?"»</p>
+          <p>Esta pregunta parece sencilla. Pero existe un problema:<br>No necesariamente
+debemos dividir $120M entre 12 meses.</p>
+          <p>¿Por qué?<br>Porque los meses pueden tener comportamientos diferentes.</p>
+
+          <h3>3. PRIMER CONCEPTO: META</h3>
+          <p>Una meta es un resultado que queremos alcanzar.<br>En nuestro caso:<br>Meta
+anual = $120M</p>
+          <p>Pero esta información todavía no sirve directamente para gestionar el negocio
+diariamente.<br>Necesitamos convertirla en objetivos operativos.</p>
+
+          <h3>4. CASCADA DE OBJETIVOS</h3>
+          <p>La meta puede descomponerse así:<br>Año ↓ Trimestre ↓ Mes ↓ Semana ↓ Día ↓
+Canal</p>
+          <p>La ventaja es que podemos comparar:<br>Qué deberíamos haber conseguido
+contra: Qué realmente conseguimos.</p>
+
+         <h3>5. ESTACIONALIDAD</h3>
+         <p>Supongamos que históricamente la empresa distribuye sus ventas así:</p>
+         <table>
+           <tr><th>Mes</th><th>Peso histórico</th></tr>
+           <tr><td>Enero a Febrero</td><td>7% cada uno</td></tr>
+             <tr><td>Marzo a Abril</td><td>8% cada uno</td></tr>
+             <tr><td>Mayo</td><td>10%</td></tr>
+             <tr><td>Junio</td><td>9%</td></tr>
+             <tr><td>Julio a Agosto</td><td>8% cada uno</td></tr>
+             <tr><td>Septiembre</td><td>7%</td></tr>
+             <tr><td>Octubre</td><td>8%</td></tr>
+             <tr><td>Noviembre</td><td>12%</td></tr>
+             <tr><td>Diciembre</td><td>8%</td></tr>
+             <tr><td><strong>Total</strong></td><td><strong>100%</strong></td></tr>
+          </table>
+          <p>Esto significa que históricamente noviembre representa aproximadamente 12%
+de las ventas anuales.</p>
+
+         <h3>6. CONSTRUYENDO LA META MENSUAL</h3>
+         <p>Meta anual: $120M<br>Noviembre representa: 12%<br>Por lo tanto:<br>$120M
+× 12% = $14.4M<br>La meta de noviembre sería: $14.4M</p>
+         <p>Para enero:<br>$120M × 7% = $8.4M<br>Y así sucesivamente.</p>
+
+        <h3>7. AHORA INTRODUCIMOS LOS CANALES</h3>
+        <p>Supongamos que históricamente el mix es:<br>Ecommerce 50%, App 25%,
+WhatsApp 15%, Call Center 10%.</p>
+        <p>Si enero tiene una meta de $8.4M:</p>
+        <ul>
+          <li>Ecommerce: $8.4M × 50% = $4.2M</li>
+          <li>App: $8.4M × 25% = $2.1M</li>
+          <li>WhatsApp: $8.4M × 15% = $1.26M</li>
+          <li>Call Center: $8.4M × 10% = $0.84M</li>
+        </ul>
+
+           <h3>8. PERO HAY UNA TRAMPA</h3>
+           <p>¿Podemos asumir que el mix será exactamente igual todos los meses?<br>No
+necesariamente.</p>
+           <p>Una promoción podría: Aumentar Ecommerce, Aumentar WhatsApp, Reducir
+participación del Call Center.</p>
+           <p>Por eso:<br>«El histórico es un punto de partida, no una verdad
+automática.»<br>El analista debe conocer los supuestos detrás de la distribución.</p>
+
+         <h3>9. EJEMPLO COMPLETO</h3>
+         <p>La empresa tiene: Meta anual = $120M. La meta de noviembre: $120M × 12% =
+$14.4M.</p>
+         <table>
+           <tr><th>Canal</th><th>Peso</th><th>Meta</th></tr>
+           <tr><td>Ecommerce</td><td>50%</td><td>$7.20M</td></tr>
+           <tr><td>App</td><td>25%</td><td>$3.60M</td></tr>
+            <tr><td>WhatsApp</td><td>15%</td><td>$2.16M</td></tr>
+            <tr><td>Call Center</td><td>10%</td><td>$1.44M</td></tr>
+
+<tr><td><strong>Total</strong></td><td><strong>100%</strong></td><td><strong>$14.40M</s
+trong></td></tr>
+          </table>
+
+         <h3>10. PRÁCTICA GUIADA</h3>
+         <p>Ahora hazlo tú.<br>Meta anual: $100,000,000<br>Peso de octubre: 9%<br>Mix:
+Ecommerce: 50% | App: 30% | WhatsApp: 10% | Call Center: 10%</p>
+         <p>Paso 1: Calcula la meta de octubre. ($100M × 9% = ?)<br>Paso 2: Calcula la
+meta Ecommerce.<br>Paso 3: Calcula la meta App.<br>Paso 4: Calcula la meta
+WhatsApp.<br>Paso 5: Calcula la meta Call Center.<br>Paso 6: Comprueba: ¿Los cuatro
+canales suman la meta mensual?</p>
+
+          <div class="exercise-box">
+             <h4>Ingresa tus resultados con las cifras calculadas exactas (sin comas ni puntos,
+ej: 4500000):</h4>
+             <div class="input-grid">
+               <label>Meta octubre ($) <input type="number" id="l1-meta"></label>
+               <label>Ecommerce ($) <input type="number" id="l1-eco"></label>
+               <label>App ($) <input type="number" id="l1-app"></label>
+               <label>WhatsApp ($) <input type="number" id="l1-wa"></label>
+               <label>Call Center ($) <input type="number" id="l1-cc"></label>
+             </div>
+             <button class="action-btn" onclick="checkL1()">Verificar y ver respuestas
+originales</button>
+             <div id="feedback-l1" class="feedback"></div>
+             <div id="sol-l1" class="hidden-solution">
+               <h4>11. RESPUESTAS</h4>
+               <p>Meta octubre: $9M<br>Ecommerce: $4.5M<br>App: $2.7M<br>WhatsApp:
+$0.9M<br>Call Center: $0.9M<br>Total: $9M<br>Correcto.</p>
+             </div>
+          </div>
+
+          <h3>12. AHORA EL RETO</h3>
+          <p>La empresa tiene:<br>Meta anual: $120M<br>Histórico mensual: (Enero 7%,
+Noviembre 12%, etc. listados arriba).<br>Mix histórico: Ecommerce 50%, App 25%, WhatsApp
+15%, Call Center 10%.</p>
+          <p>Tu misión - Construye:<br>1. Meta de cada mes.<br>2. Meta anual por
+canal.<br>3. Meta mensual por canal.<br>4. Explica qué supuestos estás utilizando.</p>
+
+         <h3>13. PISTAS</h3>
+         <ul>
+             <li>Pista 1: La meta mensual se obtiene multiplicando: Meta anual × peso
+mensual</li>
+             <li>Pista 2: La meta por canal se obtiene multiplicando: Meta del mes × peso del
+canal</li>
+             <li>Pista 3: Comprueba siempre que: Suma de metas mensuales = meta anual y
+Suma de canales = meta mensual</li>
+           </ul>
+
+           <div class="exercise-box qualitative">
+             <h4>Calcula la muestra de este reto con cifras exactas:</h4>
+             <div class="input-grid">
+                <label>Meta Enero ($) <input type="number" id="l1-reto-enero"></label>
+                <label>Meta Noviembre ($) <input type="number" id="l1-reto-nov"></label>
+             </div>
+             <h4>Escribe tus notas adicionales aquí:</h4>
+             <textarea class="text-input" rows="3"></textarea>
+             <button class="action-btn" onclick="checkL1Reto()">Verificar respuesta</button>
+             <div id="feedback-l1-reto" class="feedback"></div>
+
+          <div id="sol-l1-reto" class="hidden-solution">
+             <h4>14. SOLUCIÓN</h4>
+             <p>Meta anual: $120M</p>
+             <p>Por ejemplo:<br>Enero: $120M × 7% = $8.4M<br>Febrero:
+$8.4M<br>Marzo: $9.6M<br>Abril: $9.6M<br>Mayo: $12M<br>Junio: $10.8M<br>Julio:
+$9.6M<br>Agosto: $9.6M<br>Septiembre: $8.4M<br>Octubre: $9.6M<br>Noviembre:
+$14.4M<br>Diciembre: $9.6M<br>Total: $120M</p>
+          </div>
+        </div>
+
+         <h3>15. REFLEXIÓN</h3>
+         <p>Antes de continuar responde:<br>¿Qué pasaría si simplemente dividiéramos
+$120M entre 12?</p>
+         <p>Obtendríamos: $10M por mes. Eso ignoraría la estacionalidad.<br>Por ejemplo:
+Noviembre históricamente representa 12%. Una meta plana asignaría 8.33%. Eso significaría
+subestimar noviembre.</p>
+
+         <h3>16. LO QUE DEBES LLEVARTE</h3>
+         <p>Una meta no debe convertirse automáticamente en: Meta / número de
+periodos<br>Primero debemos entender: Histórico, Estacionalidad, Eventos, Canales,
+Supuestos.</p>
+
+           <h3>17. TRANSFERENCIA AL TRABAJO</h3>
+           <p>Cuando alguien te entregue una meta anual, tus primeras preguntas deberían
+ser:</p>
+          <ol>
+            <li>¿Cuál es la distribución histórica?</li>
+            <li>¿Existe estacionalidad?</li>
+            <li>¿Qué eventos comerciales existen?</li>
+            <li>¿Cómo se distribuye por canal?</li>
+            <li>¿El mix esperado será igual al histórico?</li>
+            <li>¿Qué supuestos se utilizaron?</li>
+          </ol>
+
+           <blockquote><strong>CHECKPOINT:</strong> No avances si todavía no puedes
+explicar: «¿Por qué una meta anual no debería dividirse necesariamente en partes
+iguales?»</blockquote>
+        </div>
+
+       <!-- LECCIÓN 2 -->
+       <div id="l2" class="lesson">
+          <h2>LECCIÓN 2<br>¿VAMOS AL RITMO CORRECTO?</h2>
+          <div class="meta-info"><p><strong>Tema:</strong> Pacing, Run Rate, Forecast y
+Target Diario.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> A mitad de mes, el director le pregunta a <span data-learner-name>Manuel</span> si van bien. <span data-learner-name>Manuel</span> necesita medir el ritmo antes de responder.</p>
+
+          <h3>1. ¿QUÉ VAS A APRENDER?</h3>
+          <p>Al terminar podrás: Medir cumplimiento, Medir pacing, Calcular run rate, Construir
+un forecast simple, Calcular el target diario requerido, Diferenciar ritmo actual de resultado final
+esperado.</p>
+
+         <h3>2. EL PROBLEMA</h3>
+         <p>Meta mensual: $12,000,000<br>Estamos en el día 18 de un mes de 30
+días.<br>Venta acumulada: $6,300,000</p>
+         <p>La pregunta del director es: «"¿Vamos bien?"»<br>No podemos responder
+simplemente: «"Llevamos $6.3M."» Necesitamos contexto.</p>
+
+         <h3>3. CUMPLIMIENTO</h3>
+         <p>Cumplimiento = Real / Meta<br>$6.3M / $12M = 52.5%<br>Hemos cumplido
+52.5% de la meta.</p>
+
+        <h3>4. TIEMPO TRANSCURRIDO</h3>
+        <p>Han pasado: 18 días. El mes tiene: 30 días.<br>Porcentaje de tiempo: 18 / 30 =
+60%<br>Tenemos: 60% del tiempo transcurrido pero 52.5% de la meta alcanzada.</p>
+
+         <h3>5. PACING</h3>
+         <p>Podemos expresar la diferencia: 52.5% - 60% = -7.5 puntos
+porcentuales<br>Estamos 7.5 puntos porcentuales por debajo del avance temporal.</p>
+          <p>Esto nos dice: «Estamos vendiendo más lentamente de lo que necesitaríamos
+bajo una distribución temporal uniforme.» Pero todavía no significa necesariamente que
+terminaremos por debajo.</p>
+
+         <h3>6. RUN RATE</h3>
+         <p>Venta acumulada: $6.3M<br>Días transcurridos: 18<br>Run Rate: $6.3M / 18 =
+$350K diarios</p>
+
+        <h3>7. FORECAST SIMPLE</h3>
+        <p>Días restantes: 12<br>Si continuamos vendiendo $350K diarios: $350K × 12 =
+$4.2M<br>Forecast: $6.3M + $4.2M = $10.5M</p>
+
+          <h3>8. TARGET DIARIO REQUERIDO</h3>
+          <p>Meta: $12M<br>Venta acumulada: $6.3M<br>Brecha: $5.7M<br>Días restantes:
+12<br>Target diario: $5.7M / 12 = $475K<br>Necesitamos generar: $475K diarios para alcanzar
+la meta.</p>
+
+          <h3>9. COMPARACIÓN</h3>
+          <p>Run Rate actual: $350K<br>Target requerido: $475K<br>Diferencia: $125K
+diarios<br>Esto es una señal importante.</p>
+
+           <h3>10. PERO HAY UN EVENTO</h3>
+           <p>Supongamos que durante los últimos cinco días habrá una campaña que
+históricamente genera: $1M adicional<br>Entonces el forecast simple podría estar
+subestimando el resultado. El analista debe evitar tratar el forecast simple como una predicción
+definitiva.</p>
+
+          <h3>11. PRÁCTICA GUIADA</h3>
+          <p>Meta: $10,000,000 | Día: 15 de 30 | Venta: $4,000,000<br>Calcula:
+Cumplimiento, Tiempo transcurrido, Pacing, Run Rate, Forecast simple, Target requerido.</p>
+          <div class="exercise-box">
+             <h4>Ingresa tus cálculos con cifras exactas:</h4>
+             <div class="input-grid">
+               <label>Cumplimiento (%) <input type="number" id="l2-p-cump"
+step="0.1"></label>
+               <label>Tiempo transcurrido (%) <input type="number" id="l2-p-tiempo"
+step="0.1"></label>
+               <label>Pacing (pp) <input type="number" id="l2-p-pacing" step="0.1"></label>
+               <label>Run Rate ($) <input type="number" id="l2-p-run" step="0.01"></label>
+               <label>Forecast simple ($) <input type="number" id="l2-p-fore"></label>
+               <label>Target requerido ($) <input type="number" id="l2-p-target"></label>
+             </div>
+             <button class="action-btn" onclick="checkL2Practica()">Verificar y ver respuestas
+originales</button>
+           <div id="feedback-l2-p" class="feedback"></div>
+           <div id="sol-l2-p" class="hidden-solution">
+             <h4>RESPUESTAS PRÁCTICA</h4>
+             <p>Cumplimiento: 40%.<br>Tiempo transcurrido: 50%.<br>Pacing: -10
+pp.<br>Run Rate: $4M / 15 = $266.7K<br>Forecast simple: $4M + ($266.7K × 15) ≈
+$8M<br>Target requerido: $6M / 15 = $400K diarios.</p>
+           </div>
+        </div>
+
+           <h3>12. RETO</h3>
+           <p>Ahora trabaja solo.<br>Meta: $15,000,000<br>Día: 20<br>Días del mes:
+30<br>Venta acumulada: $8,200,000</p>
+           <p>Además:<br>- Habrá una campaña durante los últimos 5 días.<br>-
+Históricamente esa campaña genera $2M.<br>- Los últimos 5 días representan normalmente
+20% de las ventas mensuales.</p>
+           <p>Calcula: 1. Cumplimiento. 2. Tiempo transcurrido. 3. Pacing. 4. Run Rate. 5.
+Forecast simple. 6. Target diario requerido. 7. Explica por qué el forecast simple podría no ser
+suficiente.</p>
+
+          <h3>13. PISTAS</h3>
+          <ul>
+            <li>Pista 1: Cumplimiento: Real / Meta</li>
+            <li>Pista 2: Tiempo: Días transcurridos / Días totales</li>
+            <li>Pista 3: Run Rate: Venta acumulada / Días transcurridos</li>
+            <li>Pista 4: Forecast simple: Venta acumulada + Run Rate × días restantes</li>
+            <li>Pista 5: Target: (Meta - Venta acumulada) / días restantes</li>
+          </ul>
+
+           <div class="exercise-box">
+             <h4>Resuelve el reto con cifras exactas:</h4>
+             <div class="input-grid">
+                <label>Cumplimiento (%) <input type="number" id="l2-r-cump"
+step="0.1"></label>
+                <label>Target requerido ($) <input type="number" id="l2-r-target"></label>
+             </div>
+             <label>¿Por qué el forecast simple podría no ser suficiente?</label>
+             <textarea class="text-input" rows="2" placeholder="Escribe tu análisis
+aquí..."></textarea>
+             <button class="action-btn" onclick="checkL2Reto()">Verificar cálculos y ver
+Solución</button>
+             <div id="feedback-l2-r" class="feedback"></div>
+
+            <div id="sol-l2-r" class="hidden-solution">
+              <h4>14. SOLUCIÓN</h4>
+                <p>Cumplimiento: $8.2M / $15M = 54.7%<br>Tiempo: 20 / 30 =
+66.7%<br>Pacing: 54.7% - 66.7% = -12 pp<br>Run Rate: $8.2M / 20 = $410K
+diarios<br>Forecast simple: $8.2M + ($410K × 10) = $12.3M<br>Target requerido: ($15M -
+$8.2M) / 10 = $680K diarios</p>
+                <p>El forecast simple indica $12.3M. Pero existe una campaña durante los
+últimos 5 días. Por lo tanto:<br>«El forecast simple no incorpora necesariamente el efecto de la
+campaña.»<br>La información histórica de eventos debería incorporarse a un forecast más
+sofisticado.</p>
+             </div>
+          </div>
+
+           <h3>15. REFLEXIÓN</h3>
+           <p>El analista debe evitar decir: «"No vamos a llegar."»</p>
+           <p>Lo correcto sería: «"Al ritmo actual, el forecast simple indica $12.3M frente a una
+meta de $15M. Existe una campaña prevista durante los últimos cinco días, por lo que sería
+necesario ajustar el forecast considerando el impacto histórico del evento."»<br>Eso es
+análisis.</p>
+        </div>
+
+       <!-- LECCIÓN 3 -->
+       <div id="l3" class="lesson">
+          <h2>LECCIÓN 3<br>DESCOMPONIENDO LAS VENTAS</h2>
+          <div class="meta-info"><p><strong>Tema:</strong> Volumen × CR × AOV.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> Las ventas cambiaron entre dos periodos. <span data-learner-name>Manuel</span> necesita explicar por qué, no solo reportar que cambiaron.</p>
+
+          <h3>1. OBJETIVO</h3>
+          <p>Aprender a responder: «¿Por qué cambió la venta?»</p>
+
+         <h3>2. LA ECUACIÓN</h3>
+         <p>Venta = Sesiones × CR × AOV</p>
+         <p>Supongamos: 100,000 sesiones. CR: 2%. AOV: $2,000.<br>Pedidos: 100,000 ×
+2% = 2,000.<br>Venta: 2,000 × $2,000 = $4,000,000</p>
+
+          <h3>3. CAMBIO DE ESCENARIO</h3>
+          <p>Ahora: Sesiones: 110,000. CR: 2.1%. AOV: $2,100.<br>Pedidos:
+2,310.<br>Venta: $4,851,000<br>La venta creció. Pero: «¿Por qué?» Porque cambiaron tres
+variables.</p>
+
+        <h3>4. EL ANALISTA NO DEBE CONFORMARSE CON LA VENTA</h3>
+        <p>Debe descomponer:<br>Volumen: ¿Cuántas oportunidades tenemos?<br>CR:
+¿Qué proporción convierte?<br>AOV: ¿Cuánto genera cada pedido?</p>
+
+          <h3>5. PRÁCTICA GUIADA</h3>
+          <p>Periodo A: 100,000 sesiones. CR = 2%. AOV = $2,000. Venta:
+$4,000,000<br>Periodo B: 90,000 sesiones. CR = 1.8%. AOV = $2,100. Pedidos: 1,620. Venta:
+$3,402,000</p>
+          <p>La venta cayó. Ahora debes observar: Sesiones ↓. CR ↓. AOV ↑.<br>No podemos
+decir que una sola variable explica toda la caída.</p>
+
+           <h3>6. RETO</h3>
+           <p>Periodo A: Sesiones: 200,000. CR: 2.5%. AOV: $1,800.<br>Periodo B: Sesiones:
+210,000. CR: 2.1%. AOV: $1,900.</p>
+           <p>Calcula: 1. Pedidos A. 2. Venta A. 3. Pedidos B. 4. Venta B. 5. RPS A. 6. RPS B.
+7. Variación de venta. 8. Variación de sesiones. 9. Variación de CR. 10. Variación de
+AOV.<br>Después responde: «¿Qué cambió y qué investigarías primero?»</p>
+
+         <h3>7. PISTAS</h3>
+         <p>Pedidos: Sesiones × CR<br>Venta: Pedidos × AOV<br>RPS: Venta /
+Sesiones<br>No intentes explicar primero. Primero calcula.</p>
+
+           <div class="exercise-box">
+              <h4>Calcula los resultados con cifras exactas:</h4>
+              <div class="input-grid">
+                 <label>Pedidos A <input type="number" id="l3-pa"></label>
+                 <label>Venta A ($) <input type="number" id="l3-va"></label>
+                 <label>Pedidos B <input type="number" id="l3-pb"></label>
+                 <label>Venta B ($) <input type="number" id="l3-vb"></label>
+                 <label>RPS A ($) <input type="number" id="l3-rpsa" step="0.1"></label>
+                 <label>RPS B ($) <input type="number" id="l3-rpsb" step="0.1"></label>
+              </div>
+              <label>¿Qué cambió y qué investigarías primero?</label>
+              <textarea class="text-input" rows="2" placeholder="Redacta tu
+hipótesis..."></textarea>
+              <button class="action-btn" onclick="checkL3Reto()">Evaluar Reto y ver
+Solución</button>
+              <div id="feedback-l3" class="feedback"></div>
+
+             <div id="sol-l3" class="hidden-solution">
+               <h4>8. SOLUCIÓN</h4>
+               <p>Periodo A:<br>Pedidos: 200,000 × 2.5% = 5,000<br>Venta: 5,000 × $1,800
+= $9M<br>RPS: $9M / 200K = $45</p>
+               <p>Periodo B:<br>Pedidos: 210,000 × 2.1% = 4,410<br>Venta: 4,410 × $1,900
+= $8.379M<br>RPS: $8.379M / 210K = $39.90</p>
+               <p>Interpretación:<br>Sesiones aumentaron. Pero CR cayó. AOV
+aumentó.<br>El aumento del AOV no compensó el deterioro de conversión.<br>Una
+investigación razonable sería: «¿Qué provocó la caída del CR?»</p>
+             </div>
+         </div>
+       </div>
+
+       <!-- LECCIÓN 4 -->
+       <div id="l4" class="lesson">
+          <h2>LECCIÓN 4<br>¿QUÉ TRÁFICO REALMENTE APORTA?</h2>
+          <div class="meta-info"><p><strong>Tema:</strong> Análisis de canales.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> <span data-learner-name>Manuel</span> debe recomendar dónde conviene poner esfuerzo de adquisición y no quiere dejarse llevar solo por el volumen de tráfico.</p>
+
+         <h3>1. OBJETIVO</h3>
+         <p>Aprender a no confundir: volumen de tráfico con valor económico.</p>
+
+         <h3>2. CASO</h3>
+         <table>
+            <tr><th>Canal</th><th>Sesiones</th><th>Pedidos</th><th>Venta</th></tr>
+            <tr><td>SEO</td><td>200,000</td><td>3,000</td><td>$6,000,000</td></tr>
+            <tr><td>Direct</td><td>100,000</td><td>2,500</td><td>$5,000,000</td></tr>
+            <tr><td>Email</td><td>20,000</td><td>1,500</td><td>$4,000,000</td></tr>
+         </table>
+
+         <h3>3. CALCULA SEO</h3>
+         <p>CR: 3,000 / 200,000 = 1.5%<br>AOV: $6,000,000 / 3,000 = $2,000<br>RPS:
+$6,000,000 / 200,000 = $30</p>
+
+         <h3>4. CALCULA DIRECT</h3>
+         <p>CR: 2.5%<br>AOV: $2,000<br>RPS: $50</p>
+
+         <h3>5. CALCULA EMAIL</h3>
+         <p>CR: 7.5%<br>AOV: $2,666.67<br>RPS: $200</p>
+
+          <h3>6. ¿QUÉ OBSERVAMOS?</h3>
+          <p>SEO tiene mayor volumen. Email tiene menor volumen.<br>Pero Email presenta:
+Mayor CR, Mayor AOV, Mayor RPS.</p>
+          <p>No debemos convertir esto automáticamente en: «"Email es el mejor
+canal."»<br>¿Por qué? Porque no hemos analizado: Costos, Escalabilidad, Margen,
+Incrementalidad, Alcance, Sostenibilidad.</p>
+          <p>Lo correcto es describir: «"Email genera menor volumen de sesiones, pero
+presenta un RPS considerablemente superior en este periodo."»</p>
+
+          <h3>7. RETO</h3>
+          <p>Utiliza los mismos datos. Calcula: CR por canal, AOV por canal, RPS por canal,
+Mix de ingresos.</p>
+          <p>Después responde:<br>Pregunta 1: ¿Qué canal genera más
+sesiones?<br>Pregunta 2: ¿Qué canal genera más ingresos?<br>Pregunta 3: ¿Qué canal tiene
+mayor CR?<br>Pregunta 4: ¿Qué canal tiene mayor RPS?<br>Pregunta 5: ¿Qué información
+adicional necesitarías antes de tomar una decisión de inversión?</p>
+
+           <div class="exercise-box qualitative">
+             <h4>Calcula métricas clave para Email y reflexiona:</h4>
+             <div class="input-grid">
+                <label>Email CR (%) <input type="number" id="l4-em-cr" step="0.1"></label>
+                <label>Email AOV ($) <input type="number" id="l4-em-aov" step="0.01"></label>
+                <label>Email RPS ($) <input type="number" id="l4-em-rps"></label>
+             </div>
+             <textarea class="text-input" rows="3" placeholder="Responde las preguntas 1 a 5
+aquí..."></textarea>
+             <button class="action-btn" onclick="checkL4()">Verificar respuesta</button>
+             <div id="feedback-l4" class="feedback"></div>
+
+             <div id="sol-l4" class="hidden-solution">
+               <h4>8. SOLUCIÓN</h4>
+               <p>SEO: CR = 1.5% | AOV = $2,000 | RPS = $30<br>Direct: CR = 2.5% | AOV
+= $2,000 | RPS = $50<br>Email: CR = 7.5% | AOV ≈ $2,666.67 | RPS = $200</p>
+               <p>Ingresos totales: $15M<br>Mix: SEO: 40% | Direct: 33.3% | Email:
+26.7%</p>
+               <h4>9. REFLEXIÓN</h4>
+               <p>Una buena pregunta de analista sería: «"¿Por qué Email tiene un RPS tan
+superior?"»<br>Podrían existir varias explicaciones: Audiencia más cualificada, Clientes
+recurrentes, Campañas promocionales, Diferencias de atribución, Mayor intención de compra.
+Todavía no sabemos cuál. Eso genera una investigación.</p>
+             </div>
+          </div>
+       </div>
+
+     <!-- LECCIÓN 5 -->
+     <div id="l5" class="lesson">
+        <h2>LECCIÓN 5<br>ENCONTRANDO LA CAUSA DE UNA CAÍDA</h2>
+        <div class="meta-info"><p><strong>Tema:</strong> Brecha → Driver → Segmento
+→ Señal → Hipótesis.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> Las ventas cayeron 7%. <span data-learner-name>Manuel</span> necesita pasar de «bajaron» a una hipótesis con evidencia.</p>
+
+          <h3>1. OBJETIVO</h3>
+          <p>Esta es una de las lecciones más importantes del curso. Aquí aprenderás a pasar
+de:<br>«"Las ventas bajaron."» a: «"Sabemos qué variable está explicando la caída, dónde
+ocurre y qué hipótesis debemos investigar."»</p>
+
+         <h3>2. CASO</h3>
+         <p>Venta: -7% | Sesiones: +4% | CR: -11% | AOV: +1%</p>
+          <h3>3. PRIMERA OBSERVACIÓN</h3>
+          <p>El volumen no parece ser el principal problema. Las sesiones aumentaron. El CR
+cayó. Por lo tanto, debemos investigar conversión.</p>
+
+         <h3>4. SEGMENTAMOS</h3>
+         <p>CR general: -11% | Mobile: -18% | Desktop: -2%<br>La caída está más
+concentrada en Mobile.</p>
+
+          <h3>5. SEGMENTAMOS DE NUEVO</h3>
+          <p>Mobile: Safari: -29% | Chrome: -12%<br>Ahora tenemos una señal más
+específica.</p>
+
+          <h3>6. IMPORTANTE</h3>
+          <p>Todavía no podemos decir: «"Safari causó la caída."»<br>Lo único que sabemos
+es: «El deterioro del CR es particularmente fuerte en Safari mobile.» Eso es una señal.</p>
+
+          <h3>7. HIPÓTESIS</h3>
+          <p>Podemos formular: «"Una posible explicación es que exista una fricción técnica
+específica para usuarios Safari mobile durante el proceso de compra."»</p>
+
+         <h3>8. ¿CÓMO LA VALIDAMOS?</h3>
+         <p>Necesitamos revisar: Errores, Funnel, Checkout, Métodos de pago, Page speed,
+Sesiones, Eventos.</p>
+
+         <h3>9. RETO</h3>
+         <p>Situación:<br>Venta: -7% | Sesiones: +4% | CR: -11% | AOV: +1%<br>Mobile
+CR: -18% | Desktop CR: -2%<br>Safari mobile: -29% | Chrome mobile: -12%</p>
+         <p>Debes construir: 1. Brecha 2. Driver 3. Segmento 4. Señal 5. Hipótesis 6. Datos
+que necesitas 7. Qué resultado confirmaría tu hipótesis.</p>
+
+          <div class="exercise-box qualitative">
+            <label>Construye tu diagnóstico aquí:</label>
+            <textarea class="text-input" rows="4"></textarea>
+            <button class="action-btn" onclick="checkL5()">Registrar respuesta</button>
+
+            <div id="sol-l5" class="hidden-solution">
+              <h4>10. SOLUCIÓN ESPERADA</h4>
+              <p><strong>Brecha:</strong> La venta está 7% por debajo del periodo
+comparable.<br><strong>Driver:</strong> El principal deterioro observable está en
+CR.<br><strong>Segmento:</strong> Mobile.<br><strong>Señal:</strong> Safari mobile
+presenta la mayor caída.<br><strong>Hipótesis:</strong> Podría existir una fricción específica
+para Safari mobile.<br><strong>Evidencia:</strong> Revisar Errores, Checkout, Métodos de
+pago, Velocidad, Eventos.<br><strong>Confirmación:</strong> Si encontramos un aumento de
+errores específico en Safari mobile durante checkout coincidente temporalmente con la caída
+de conversión, la hipótesis ganaría evidencia. Pero todavía sería necesario comprobar que la
+relación explica una parte significativa de la caída.</p>
+
+              <h4>11. REFLEXIÓN</h4>
+              <p>La secuencia correcta es: Dato → Hallazgo → Señal → Hipótesis →
+Evidencia.<br>No: Dato → conclusión definitiva.</p>
+            </div>
+         </div>
+       </div>
+
+       <!-- LECCIÓN 6 -->
+       <div id="l6" class="lesson">
+          <h2>LECCIÓN 6<br>ENCONTRANDO DÓNDE SE PIERDEN LOS CLIENTES</h2>
+          <div class="meta-info"><p><strong>Tema:</strong> Funnel Analysis.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> <span data-learner-name>Manuel</span> sospecha que el problema está en el proceso de compra y necesita encontrar en qué etapa se pierden los clientes.</p>
+
+         <h3>1. OBJETIVO</h3>
+         <p>Aprender a identificar en qué etapa del proceso ocurre la pérdida.</p>
+
+         <h3>2. FUNNEL</h3>
+         <table>
+            <tr><th>Etapa</th><th>Usuarios</th></tr>
+            <tr><td>View Item</td><td>100,000</td></tr>
+            <tr><td>Add Cart</td><td>30,000</td></tr>
+            <tr><td>Checkout</td><td>25,000</td></tr>
+            <tr><td>Purchase</td><td>10,000</td></tr>
+         </table>
+
+        <h3>3. TASAS DE PASO</h3>
+        <p>View → Cart: 30,000 / 100,000 = 30%<br>Cart → Checkout: 25,000 / 30,000 =
+83.3%<br>Checkout → Purchase: 10,000 / 25,000 = 40%</p>
+
+        <h3>4. DROP-OFF</h3>
+        <p>View → Cart: 70%<br>Cart → Checkout: 16.7%<br>Checkout → Purchase:
+60%<br>La mayor pérdida ocurre entre: Checkout → Purchase</p>
+
+         <h3>5. AHORA SEGMENTAMOS</h3>
+         <p>Supongamos: Segmento | Checkout → Purchase<br>Desktop: 55% | Mobile:
+30%<br>Mobile parece presentar una fricción mayor.</p>
+         <p>Ahora: Navegador mobile | Tasa<br>Chrome: 35% | Safari: 20%<br>Tenemos
+una señal.</p>
+
+         <h3>6. AGREGAMOS PAGO</h3>
+          <p>Supongamos que: Approval Rate general: 90% | Safari mobile: 70%<br>Ahora
+existe una señal adicional.</p>
+
+          <h3>7. RETO</h3>
+          <p>Datos:<br>CR general: -8% | Checkout → Purchase: -18% | Mobile: -25% |
+Desktop: -3% | Safari mobile: -35% | Errores de pago Safari mobile: +40%</p>
+          <p>Construye: 1. Brecha. 2. Driver. 3. Etapa afectada. 4. Segmento. 5. Señal. 6.
+Hipótesis. 7. Evidencia adicional. 8. Acción de investigación. 9. KPI de seguimiento.</p>
+
+         <div class="exercise-box qualitative">
+           <label>Redacta tus hallazgos:</label>
+           <textarea class="text-input" rows="4"></textarea>
+           <button class="action-btn" onclick="checkL6()">Registrar respuesta</button>
+
+             <div id="sol-l6" class="hidden-solution">
+                <h4>8. SOLUCIÓN</h4>
+                <p><strong>Brecha:</strong> CR general: -8%<br><strong>Driver:</strong>
+Deterioro del funnel, especialmente checkout → purchase.<br><strong>Segmento:</strong>
+Mobile.<br><strong>Señal:</strong> Safari mobile presenta una caída de
+35%.<br><strong>Señal adicional:</strong> Errores de pago aumentan
+40%.<br><strong>Hipótesis:</strong> Una posible explicación es una fricción de pago
+específica en Safari mobile.<br><strong>Evidencia adicional:</strong> Cruzar Intentos,
+Aprobaciones, Rechazos, Código de error, Método de pago, Versión del navegador,
+Fecha/hora.<br><strong>Acción:</strong> Investigar la experiencia de pago de Safari mobile y
+reproducir los errores identificados.<br><strong>KPI:</strong> Checkout → Purchase, Approval
+Rate, Error Rate.</p>
+             </div>
+          </div>
+       </div>
+
+       <!-- LECCIÓN 7 -->
+       <div id="l7" class="lesson">
+          <h2>LECCIÓN 7<br>¿ESTAMOS CRECIENDO O ESTAMOS PERDIENDO
+CLIENTES?</h2>
+          <div class="meta-info"><p><strong>Tema:</strong> Retención, recurrencia, cohortes
+y LTV.</p></div>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> Las ventas crecen, pero <span data-learner-name>Manuel</span> se pregunta si la base de clientes realmente está sana.</p>
+
+         <h3>1. OBJETIVO</h3>
+         <p>Aprender a distinguir crecimiento de ventas de salud de la base.</p>
+
+         <h3>2. CASO</h3>
+         <p>Tenemos: Clientes: 10,000 | Órdenes: 18,000 | Ventas: $36M</p>
+
+         <h3>3. FRECUENCIA</h3>
+          <p>Frecuencia = Órdenes / Clientes<br>18,000 / 10,000 = 1.8 órdenes por
+cliente</p>
+
+         <h3>4. AOV</h3>
+         <p>AOV = Venta / Órdenes<br>$36M / 18,000 = $2,000</p>
+
+         <h3>5. AHORA COHORTES</h3>
+         <p>Supongamos:</p>
+         <table>
+            <tr><th>Cohorte</th><th>Clientes iniciales</th><th>Mes 1</th><th>Mes
+2</th><th>Mes 3</th></tr>
+            <tr><td>Enero</td><td>1,000</td><td>600 (60%)</td><td>500 (50%)</td><td>450
+(45%)</td></tr>
+            <tr><td>Febrero</td><td>1,200</td><td>700</td><td>550</td><td>—</td></tr>
+            <tr><td>Marzo</td><td>1,100</td><td>500</td><td>—</td><td>—</td></tr>
+         </table>
+
+          <h3>6. ¿QUÉ PREGUNTAMOS?</h3>
+          <p>No solamente: «"¿Cuál es la retención?"»<br>También: «"¿Las cohortes nuevas
+están reteniendo mejor o peor?"»<br>Esto permite identificar cambios en la calidad de
+adquisición.</p>
+
+           <h3>7. RETO</h3>
+           <p>Base: 10,000 clientes, 18,000 órdenes, $36M venta.</p>
+           <p>Calcula: 1. Frecuencia. 2. AOV.</p>
+           <p>Después analiza la retención disponible para Enero, Febrero y Marzo basándote
+en la tabla (Ej. Marzo M1 = 495 de 1,100).<br>Después responde: «¿Qué investigarías si la
+cohorte de marzo tuviera una retención considerablemente menor que enero?»</p>
+
+         <div class="exercise-box qualitative">
+           <label>Escribe tus cálculos y análisis:</label>
+           <textarea class="text-input" rows="4"></textarea>
+           <button class="action-btn" onclick="checkL7()">Registrar respuesta</button>
+
+             <div id="sol-l7" class="hidden-solution">
+               <h4>8. SOLUCIÓN</h4>
+               <p>Frecuencia: 1.8 | AOV: $2,000</p>
+               <p>Enero: M1 = 60%, M2 = 50%, M3 = 45%<br>Febrero: M1 = 60%, M2 =
+45%<br>Marzo: M1 = 45%</p>
+               <p>La cohorte de marzo presenta una retención inicial menor. Pero todavía no
+podemos afirmar por qué.<br>Podríamos investigar: Fuente de adquisición, Promociones, Tipo
+de cliente, Producto inicial, Precio, Experiencia, Estacionalidad, Cambios en la oferta.</p>
+
+              <h4>9. REFLEXIÓN SOBRE LTV</h4>
+                  <p>Una fórmula simplificada puede ser: LTV ≈ AOV × Frecuencia ×
+Vida<br>Pero el analista debe preguntar: «¿Qué significa "vida"?» «¿Estamos utilizando
+ingresos o margen?» «¿Qué horizonte temporal?» «¿Cómo definimos abandono?» «¿Qué
+supuestos estamos utilizando?»<br>Por eso un LTV sin metodología documentada puede ser
+difícil de interpretar.</p>
+               </div>
+            </div>
+         </div>
+
+        <!-- LECCIÓN 8 -->
+        <div id="l8" class="lesson">
+           <h2>LECCIÓN 8<br>PROYECTO INTEGRADOR: INVESTIGA EL NEGOCIO</h2>
+           <p class="scenario"><strong>Caso de <span data-learner-name>Manuel</span>:</strong> el jefe de <span data-learner-name>Manuel</span> le dice: «Las ventas están abajo, averigua qué pasa». Esta vez nadie le indica qué KPI usar.</p>
+           <p>Esta lección reemplaza el concepto tradicional de "examen final".<br>Aquí no se
+te dice qué KPI utilizar. Tú debes descubrirlo.</p>
+
+         <h3>1. CONTEXTO</h3>
+         <p>Una empresa omnicanal tiene: Ecommerce, App, WhatsApp, Call
+Center.<br>Meta mensual: $30M | Día actual: 20 | Venta acumulada: $17M</p>
+
+         <h3>2. INFORMACIÓN DISPONIBLE</h3>
+         <p>Tienes:<br><strong>Ventas:</strong> Fecha, Canal, Pedido,
+Venta.<br><strong>Ecommerce:</strong> Sesiones, Fuente, Dispositivo, Navegador,
+Pedido.<br><strong>Funnel:</strong> View Item, Add Cart, Checkout,
+Purchase.<br><strong>Cliente:</strong> Customer ID, Primera compra, Órdenes,
+Venta.<br><strong>Producto:</strong> Categoría, SKU, Views, Add Cart, Orders,
+Revenue.<br><strong>Tecnología:</strong> Browser, Device, Error, Tiempo de carga.</p>
+
+           <h3>3. TU MISIÓN</h3>
+           <p>No empieces calculando. Primero responde:<br>Pregunta 1: ¿Cuál es el objetivo
+del análisis?<br>Pregunta 2: ¿Qué deberíamos saber?<br>Pregunta 3: ¿Qué datos
+necesitamos?<br>Pregunta 4: ¿Qué fuentes utilizaremos?<br>Pregunta 5: ¿Cómo validaremos
+los datos?</p>
+
+          <h3>4. MEDICIÓN</h3>
+          <p>Ahora calcula: Cumplimiento, Pacing, Brecha, Run Rate, Forecast, Target diario
+requerido.</p>
+
+        <h3>5. DESCOMPOSICIÓN</h3>
+        <p>Utiliza: Venta = Volumen × CR × AOV<br>Determina: Qué pasó con el volumen,
+Qué pasó con CR, Qué pasó con AOV.</p>
+
+         <h3>6. SEGMENTACIÓN</h3>
+          <p>Investiga: Canal, Dispositivo, Fuente, Funnel, Producto, Cliente.<br>No tienes
+que analizar todo con la misma profundidad. Tu objetivo es encontrar dónde existen señales
+relevantes.</p>
+
+         <h3>7. DIAGNÓSTICO</h3>
+         <p>Construye: Brecha → Driver → Segmento → Señal → Hipótesis → Evidencia</p>
+
+           <h3>8. RECOMENDACIÓN</h3>
+           <p>No escribas: «"Hay que mejorar la conversión."» Es demasiado
+general.<br>Escribe: «"Investigar la caída de conversión en checkout mobile, particularmente
+en Safari, cruzando errores de pago y aprobación por método de pago."»</p>
+
+         <h3>9. MEDICIÓN</h3>
+         <p>Define: KPI principal, KPI secundario, Segmento, Periodo, Resultado
+esperado.</p>
+
+         <h3>10. FORMATO DE ENTREGA</h3>
+         <p>Tu análisis final debe utilizar esta estructura:</p>
+         <ol>
+           <li>RESUMEN EJECUTIVO: ¿Qué está pasando?</li>
+           <li>BRECHA: ¿Cuánto nos desviamos?</li>
+           <li>DRIVER: ¿Qué variable explica el resultado?</li>
+           <li>SEGMENTOS: ¿Dónde ocurre?</li>
+           <li>HALLAZGOS: ¿Qué evidencia encontramos?</li>
+           <li>HIPÓTESIS: ¿Qué podría estar causando el comportamiento?</li>
+           <li>VALIDACIÓN: ¿Qué información adicional necesitamos?</li>
+           <li>ACCIÓN: ¿Qué recomendamos investigar o hacer?</li>
+           <li>MEDICIÓN: ¿Cómo sabremos si funcionó?</li>
+         </ol>
+
+         <h3>11. AUTOEVALUACIÓN</h3>
+         <p>Antes de considerar terminado tu análisis, responde:</p>
+         <ul>
+           <li>DATOS: ¿Utilicé los datos correctos?</li>
+           <li>FUENTES: ¿Sé de dónde salió cada dato?</li>
+           <li>DEFINICIONES: ¿Los KPIs tienen una definición clara?</li>
+           <li>MATEMÁTICA: ¿Los cálculos son correctos?</li>
+           <li>COMPARACIÓN: ¿Estoy comparando periodos equivalentes?</li>
+           <li>SEGMENTACIÓN: ¿Encontré dónde ocurre el cambio?</li>
+           <li>DIAGNÓSTICO: ¿Separé hechos de hipótesis?</li>
+           <li>EVIDENCIA: ¿Tengo evidencia suficiente?</li>
+           <li>ACCIÓN: ¿Mi recomendación se relaciona con el hallazgo?</li>
+           <li>MEDICIÓN: ¿Sé cómo comprobar si la acción funcionó?</li>
+         </ul>
+           <div class="exercise-box qualitative">
+              <h4>12. EL TEST DEFINITIVO</h4>
+              <p>Imagina que mañana tu jefe te dice: «"Las ventas están abajo. Averigua qué
+está pasando."»</p>
+              <p>No debes comenzar abriendo GA4. Debes comenzar preguntando: «¿Cuál es
+el objetivo y contra qué debemos comparar?»<br>Después: «¿Qué datos
+necesito?»<br>Después: «¿Son confiables?»<br>Después: «¿Cuál es la
+brecha?»<br>Después: «¿Qué driver explica la brecha?»<br>Después: «¿Dónde
+ocurre?»<br>Después: «¿Qué señal encuentro?»<br>Después: «¿Qué hipótesis puedo
+formular?»<br>Después: «¿Qué evidencia necesito?»<br>Y finalmente: «¿Qué acción y qué
+medición corresponden?»</p>
+              <p>Si puedes hacer eso sin que alguien te diga los pasos, estás empezando a
+pensar como analista.</p>
+              <label for="l8-answer">Escribe tu análisis integrador siguiendo el formato de entrega (sección 10):</label>
+              <textarea id="l8-answer" class="text-input" rows="8" placeholder="Resumen ejecutivo, brecha, driver, segmentos, hallazgos, hipótesis, validación, acción y medición..."></textarea>
+              <button class="action-btn" onclick="checkL8()">Registrar respuesta</button>
+              <div id="feedback-l8" class="feedback" aria-live="polite"></div>
+           </div>
+        </div>
+
+       <!-- CIERRE Y PRINCIPIOS -->
+       <div id="cierre" class="lesson">
+          <h2>MAPA FINAL Y PRINCIPIOS</h2>
+
+       <h3>MAPA FINAL DE LAS LECCIONES</h3>
+       <table>
+          <tr><th>Lección</th><th>Competencia</th></tr>
+          <tr><td>1</td><td>Construir metas</td></tr>
+          <tr><td>2</td><td>Medir ritmo y forecast</td></tr>
+          <tr><td>3</td><td>Descomponer ingresos</td></tr>
+          <tr><td>4</td><td>Evaluar adquisición</td></tr>
+          <tr><td>5</td><td>Diagnosticar causas</td></tr>
+          <tr><td>6</td><td>Analizar funnel</td></tr>
+          <tr><td>7</td><td>Analizar clientes</td></tr>
+          <tr><td>8</td><td>Integrar todo</td></tr>
+       </table>
+       <p>La dificultad aumenta progresivamente:<br>Calcular → Interpretar → Comparar
+→ Segmentar → Diagnosticar → Investigar → Recomendar</p>
+
+         <h3>REGLA PEDAGÓGICA PARA TODO EL CURSO</h3>
+         <p>Cada nueva competencia debe pasar por cinco estados:</p>
+         <ol>
+           <li>YO TE LO EXPLICO: El estudiante recibe la explicación.</li>
+           <li>YO TE LO DEMUESTRO: Ve un caso completo.</li>
+           <li>LO HACEMOS JUNTOS: Recibe pistas y ayuda.</li>
+           <li>LO HACES TÚ: Resuelve un problema nuevo.</li>
+            <li>LO TRANSFIERES: Utiliza el concepto en un contexto diferente.</li>
+          </ol>
+          <p>Solo después se considera aprendido.</p>
+
+           <blockquote>
+              <strong>PRINCIPIO FINAL:</strong><br><br>
+              El objetivo no es que el estudiante termine pensando: «"Sé calcular el
+CR."»<br><br>
+              El objetivo es que piense: «"Si me preguntan por qué cayó la venta, sé qué
+información necesito, dónde buscarla, cómo validarla, qué calcular, cómo segmentarla, cómo
+formular una hipótesis y cómo determinar qué evidencia necesito para comprobarla."»<br><br>
+              Ese es el salto entre aprender KPIs y aprender a ser analista.
+           </blockquote>
+           <p style="text-align: center; margin-top: 30px; color: var(--success-text); font-weight:
+bold; font-size: 1.2rem;">¡Felicidades, has concluido el curso de Analista!</p>
+        </div>
+
+    </div>
+  </main>
+
+  <!-- Modal de Advertencia -->
+  <div id="warning-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="warning-title" aria-describedby="warning-message" hidden>
+
+             ⚠️
+     <div class="modal-box">
+        <h3 id="warning-title">Aún no terminas</h3>
+        <p id="warning-message">Te falta leer parte del contenido o terminar los ejercicios
+correctamente.</p>
+        <p>¿Quieres continuar a la siguiente lección de todos modos? (Esta lección quedará
+como incompleta).</p>
+        <div class="modal-actions">
+          <button id="warning-cancel" class="action-btn outline" type="button" onclick="closeModal()">No, me quedo</button>
+          <button id="warning-confirm" class="action-btn" type="button" onclick="forceNextLesson()">Sí, continuar</button>
+        </div>
+     </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
